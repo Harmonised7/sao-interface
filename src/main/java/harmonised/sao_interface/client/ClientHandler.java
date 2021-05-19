@@ -1,6 +1,7 @@
 package harmonised.sao_interface.client;
 
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 public class ClientHandler
 {

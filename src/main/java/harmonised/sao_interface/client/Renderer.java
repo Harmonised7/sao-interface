@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class Renderer
 {
-    private static final Map<LivingEntity, HPBar> hpBars = new HashMap<>();
+    public static final Map<LivingEntity, HPBar> hpBars = new HashMap<>();
     private static final ResourceLocation HP_BAR = Util.getResLoc( Reference.MOD_ID, "textures/gui/hpbar.png" );
     private static final ResourceLocation HP_BAR_INSIDE = Util.getResLoc( Reference.MOD_ID, "textures/gui/hpbarinside.png" );
     private static final Minecraft mc = Minecraft.getInstance();
@@ -54,7 +54,7 @@ public class Renderer
         float w, h;
         double polyDegRange;
         double degOffset;
-        int polyCount = 1;
+        int polyCount = 32;
 //        float diameter = w*polyCount;
         double polyDegStep;
         int fullBarWidth = 256;
@@ -66,14 +66,14 @@ public class Renderer
 
         for( LivingEntity livingEntity : world.getEntitiesOfClass( LivingEntity.class, new AxisAlignedBB( originBlockPos.above( renderDistance ).north( renderDistance ).east( renderDistance ), originBlockPos.below( renderDistance ).south( renderDistance ).west( renderDistance ) ) ) )
         {
-            if( !hpBars.containsKey( livingEntity ) )
+            if( !hpBars.containsKey( livingEntity ) || hpBars.get( livingEntity ).getLivingEntity() != livingEntity )
                 hpBars.put( livingEntity, new HPBar( livingEntity ) );
             HPBar hpBar = hpBars.get( livingEntity );
             hpBar.update( partialTicks );
 
             boolean isPlayer = livingEntity == player;
-            if( isPlayer )
-                continue;
+//            if( isPlayer )
+//                continue;
 
             if( isPlayer )
                 scale = 0.3f;
@@ -114,40 +114,75 @@ public class Renderer
 
             mc.getTextureManager().bind( HP_BAR_INSIDE );
 
-            float drawnRatio, nextDrawRatio, toDraw = 1;
+            float drawnRatio, nextDrawRatio, minPolyU = 0, maxPolyU = 1;
+
+            boolean hpLoss = hpRatio < hpBarHpRatio;
+
+            float tempHpBarHpRatio = hpLoss ? hpRatio : hpBarHpRatio;
 
             //Draw bar inside
             for( int i = 0; i < polyCount; i++ )
             {
                 drawnRatio = i / (float) polyCount;
                 nextDrawRatio = (i+1) / (float) polyCount;
-                if( hpBarHpRatio < nextDrawRatio )
-                    toDraw = (float) Util.map( hpBarHpRatio, drawnRatio, nextDrawRatio, 0, 1 );
+                if( tempHpBarHpRatio < nextDrawRatio )
+                    maxPolyU = (float) Util.map( tempHpBarHpRatio, drawnRatio, nextDrawRatio, 0, 1 );
                 stack.pushPose();
                 stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, 0, w*toDraw, 0, h, 0, polyWidth*toDraw, 28, polyWidth*i, 0, 256, 256, Util.hueToRGB( (float) Util.map( hpRatio, 0, 1, 360, 240 ), 1, 1 ), 200 );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, 28, polyWidth*i + polyWidth*minPolyU, 0, 256, 256, Util.hueToRGB( (float) Util.map( hpRatio, 0, 1, 360, 240 ), 1, 1 ), 200 );
                 stack.popPose();
-                if( toDraw < 1 )
+                if( maxPolyU < 1 )
                     break;
             }
 
-            //Draw bar inside guide
-            for( int i = 0; i < polyCount; i++ )
+            minPolyU = maxPolyU;
+            maxPolyU = 1;
+
+            if( hpBarHpRatio < hpRatio )
             {
-                drawnRatio = i / (float) polyCount;
-                nextDrawRatio = (i+1) / (float) polyCount;
-                if( hpBarHpRatio < nextDrawRatio )
-                    toDraw = (float) Util.map( hpBarHpRatio, drawnRatio, nextDrawRatio, 0, 1 );
-                stack.pushPose();
-                stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
-                stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, 0, w*toDraw, 0, h, 0, polyWidth*toDraw, 28, polyWidth*i, 32, 256, 256, Util.hueToRGB( (float) Util.map( hpRatio, 0, 1, 360, 240 ), 1, 1 ), 200 );
-                stack.popPose();
-                if( toDraw < 1 )
-                    break;
-            }
+                int firstIndicatorPoly = (int) ( polyCount*hpBarHpRatio );
+                int lastIndicatorPoly = (int) ( polyCount*hpRatio )+1;
 
+                //Draw bar inside guide
+                for( int i = firstIndicatorPoly; i < lastIndicatorPoly; i++ )
+                {
+                    drawnRatio = i / (float) polyCount;
+                    nextDrawRatio = (i+1) / (float) polyCount;
+
+                    if( i+1 == lastIndicatorPoly )
+                        maxPolyU = (float) Util.map( hpRatio, drawnRatio, nextDrawRatio, 0, 1 );
+
+                    stack.pushPose();
+                    stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
+                    stack.translate( -w/2f, -h/2f - 0.1f, offset );
+                    mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, 28, polyWidth*i + polyWidth*minPolyU, 0, 256, 256, 0xffffff, 200 );
+                    minPolyU = 0;
+                    stack.popPose();
+                }
+            }
+            else if( hpRatio < hpBarHpRatio )
+            {
+                int firstIndicatorPoly = (int) ( polyCount*hpRatio );
+                int lastIndicatorPoly = (int) ( polyCount*hpBarHpRatio )+1;
+
+                //Draw bar inside guide
+                for( int i = firstIndicatorPoly; i < lastIndicatorPoly; i++ )
+                {
+                    drawnRatio = i / (float) polyCount;
+                    nextDrawRatio = (i+1) / (float) polyCount;
+
+                    if( i+1 == lastIndicatorPoly )
+                        maxPolyU = (float) Util.map( hpBarHpRatio, drawnRatio, nextDrawRatio, 0, 1 );
+
+                    stack.pushPose();
+                    stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
+                    stack.translate( -w/2f, -h/2f - 0.1f, offset );
+                    mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, 28, polyWidth*i + polyWidth*minPolyU, 0, 256, 256, 0xff0000, 200 );
+                    minPolyU = 0;
+                    stack.popPose();
+                }
+            }
 
             stack.popPose();
         }
