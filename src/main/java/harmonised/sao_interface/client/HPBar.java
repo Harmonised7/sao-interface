@@ -45,7 +45,9 @@ public class HPBar
         else if( hpPos > hpRatio )
             crucialMultiplier = (float) ( 1/Math.max( 0.25, hpRatio ) );
 
-        hpPos -= Math.min( hpDiff*d*0.1, d*0.1 ) * crucialMultiplier;
+        hpPos -= Math.min( hpDiff*d*0.1523, d*0.1523 ) * crucialMultiplier;
+        if( Math.abs( hpRatio - hpPos ) < 0.0001 )
+            hpPos = hpRatio;
     }
 
     public float getHpPos()

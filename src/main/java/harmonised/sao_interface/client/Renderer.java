@@ -10,6 +10,8 @@ import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
@@ -29,9 +31,23 @@ public class Renderer
 {
     public static final Map<LivingEntity, HPBar> hpBars = new HashMap<>();
     private static final ResourceLocation HP_BAR = Util.getResLoc( Reference.MOD_ID, "textures/gui/hpbar.png" );
-    private static final ResourceLocation HP_BAR_INSIDE = Util.getResLoc( Reference.MOD_ID, "textures/gui/hpbarinside.png" );
+    private static final ResourceLocation ICONS_128 = Util.getResLoc( Reference.MOD_ID, "textures/gui/icons128.png" );
+    private static final ResourceLocation INDICATOR = Util.getResLoc( Reference.MOD_ID, "textures/gui/indicator32x64.png" );
     private static final Minecraft mc = Minecraft.getInstance();
+
     private static int blitOffset = 0;
+
+    //HP Bar
+    private static final int polyCount = 64;
+    private static final int fullBarWidth = 512;
+    private static final float polyWidth = fullBarWidth/(float)polyCount;
+    private static final int renderDistance = 128;
+    private static final int outsideWallWidth = 2;
+    private static final float playerPitch = -25;
+
+    //Indicator
+    private static int indicatorWidth = 32;
+    private static int indicatorHeight = 64;
 
     @SubscribeEvent
     public void handleRender( RenderWorldLastEvent event )
@@ -43,146 +59,19 @@ public class Renderer
         BlockPos originBlockPos = mc.gameRenderer.getMainCamera().getBlockPosition();
         MatrixStack stack = event.getMatrixStack();
         stack.pushPose();
+        IRenderTypeBuffer.Impl buffer = mc.renderBuffers().bufferSource();
+        RenderSystem.enableBlend();
+        //Align to world
         stack.translate( -cameraCenter.get( Direction.Axis.X ) + 0.5, -cameraCenter.get( Direction.Axis.Y ) + 0.5, -cameraCenter.get( Direction.Axis.Z ) + 0.5 );
         stack.mulPose(Vector3f.XP.rotationDegrees(180.0F));
-//        stack.mulPose(Vector3f.YP.rotationDegrees(180.0F));
-
-        IRenderTypeBuffer.Impl buffer = mc.renderBuffers().bufferSource();
-
-//        blit( matrix4f, -width/2, width/2, -height/2, height/2, 0, 0, 1, 0, 0.5f );
-
-        float w, h;
-        double polyDegRange;
-        double degOffset;
-        int polyCount = 32;
-//        float diameter = w*polyCount;
-        double polyDegStep;
-        int fullBarWidth = 256;
-        float polyWidth = fullBarWidth/(float)polyCount;
-        int renderDistance = 128;
-        float playerPitch = -25;
-        float scale;
-        RenderSystem.enableBlend();
-
         for( LivingEntity livingEntity : world.getEntitiesOfClass( LivingEntity.class, new AxisAlignedBB( originBlockPos.above( renderDistance ).north( renderDistance ).east( renderDistance ), originBlockPos.below( renderDistance ).south( renderDistance ).west( renderDistance ) ) ) )
         {
-            if( !hpBars.containsKey( livingEntity ) || hpBars.get( livingEntity ).getLivingEntity() != livingEntity )
-                hpBars.put( livingEntity, new HPBar( livingEntity ) );
-            HPBar hpBar = hpBars.get( livingEntity );
-            hpBar.update( partialTicks );
-
-            boolean isPlayer = livingEntity == player;
-//            if( isPlayer )
-//                continue;
-
-            if( isPlayer )
-                scale = 0.3f;
-            else
-                scale = 1;
-
             stack.pushPose();
             Vector3d livingEntityEyePos = livingEntity.getEyePosition( partialTicks );
-            //Translate to eyes
             stack.translate( livingEntityEyePos.get( Direction.Axis.X ) - 0.5, -livingEntityEyePos.get( Direction.Axis.Y ) + 0.5, -livingEntityEyePos.get( Direction.Axis.Z ) + 0.5 );
-            //Rotate to head rotation
-//            float yaw = livingEntity == player ? livingEntity.getViewYRot( partialTicks ) : livingEntity.getYHeadRot();
-            stack.mulPose( Vector3f.YP.rotationDegrees( hpBar.getYRot() ) );
-            stack.mulPose( Vector3f.XP.rotationDegrees( hpBar.getXRot() + (isPlayer ? playerPitch : 0) ) );
-            float maxHp = livingEntity.getMaxHealth();
-            float currHp = livingEntity.getHealth();
-            float hpRatio = currHp / maxHp;
-            float hpBarHpRatio = hpBar.getHpPos();
-            polyDegRange = ( Math.max( 20, Math.min( 270, 60 * maxHp * 0.1f ) ) ) * scale;
-            degOffset = 180 - polyDegRange/2 - 30;
-            polyDegStep = polyDegRange / polyCount;
 
-            mc.getTextureManager().bind( HP_BAR );
-
-            float offset = livingEntity.getBbWidth() * 1.2f;
-            w = (float) ( 2*offset*Math.tan( Math.toRadians( polyDegStep/2 ) ) );
-            h = livingEntity.getBbHeight() * 0.1523f * scale;
-
-            //Draw bar outside
-            for( int i = 0; i < polyCount; i++ )
-            {
-                stack.pushPose();
-                stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
-                stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, 0, w, 0, h, 0, polyWidth, 28, polyWidth*i, 0, 256, 256, 0x777777, 255 );
-                stack.popPose();
-            }
-
-            mc.getTextureManager().bind( HP_BAR_INSIDE );
-
-            float drawnRatio, nextDrawRatio, minPolyU = 0, maxPolyU = 1;
-
-            boolean hpLoss = hpRatio < hpBarHpRatio;
-
-            float tempHpBarHpRatio = hpLoss ? hpRatio : hpBarHpRatio;
-
-            //Draw bar inside
-            for( int i = 0; i < polyCount; i++ )
-            {
-                drawnRatio = i / (float) polyCount;
-                nextDrawRatio = (i+1) / (float) polyCount;
-                if( tempHpBarHpRatio < nextDrawRatio )
-                    maxPolyU = (float) Util.map( tempHpBarHpRatio, drawnRatio, nextDrawRatio, 0, 1 );
-                stack.pushPose();
-                stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
-                stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, 28, polyWidth*i + polyWidth*minPolyU, 0, 256, 256, Util.hueToRGB( (float) Util.map( hpRatio, 0, 1, 360, 240 ), 1, 1 ), 200 );
-                stack.popPose();
-                if( maxPolyU < 1 )
-                    break;
-            }
-
-            minPolyU = maxPolyU;
-            maxPolyU = 1;
-
-            if( hpBarHpRatio < hpRatio )
-            {
-                int firstIndicatorPoly = (int) ( polyCount*hpBarHpRatio );
-                int lastIndicatorPoly = (int) ( polyCount*hpRatio )+1;
-
-                //Draw bar inside guide
-                for( int i = firstIndicatorPoly; i < lastIndicatorPoly; i++ )
-                {
-                    drawnRatio = i / (float) polyCount;
-                    nextDrawRatio = (i+1) / (float) polyCount;
-
-                    if( i+1 == lastIndicatorPoly )
-                        maxPolyU = (float) Util.map( hpRatio, drawnRatio, nextDrawRatio, 0, 1 );
-
-                    stack.pushPose();
-                    stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
-                    stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                    mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, 28, polyWidth*i + polyWidth*minPolyU, 0, 256, 256, 0xffffff, 200 );
-                    minPolyU = 0;
-                    stack.popPose();
-                }
-            }
-            else if( hpRatio < hpBarHpRatio )
-            {
-                int firstIndicatorPoly = (int) ( polyCount*hpRatio );
-                int lastIndicatorPoly = (int) ( polyCount*hpBarHpRatio )+1;
-
-                //Draw bar inside guide
-                for( int i = firstIndicatorPoly; i < lastIndicatorPoly; i++ )
-                {
-                    drawnRatio = i / (float) polyCount;
-                    nextDrawRatio = (i+1) / (float) polyCount;
-
-                    if( i+1 == lastIndicatorPoly )
-                        maxPolyU = (float) Util.map( hpBarHpRatio, drawnRatio, nextDrawRatio, 0, 1 );
-
-                    stack.pushPose();
-                    stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
-                    stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                    mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, 28, polyWidth*i + polyWidth*minPolyU, 0, 256, 256, 0xff0000, 200 );
-                    minPolyU = 0;
-                    stack.popPose();
-                }
-            }
+            drawHpBar( stack, livingEntity, partialTicks );
+            drawNPCIndicator( stack, livingEntity );
 
             stack.popPose();
         }
@@ -190,6 +79,146 @@ public class Renderer
         stack.popPose();
         RenderSystem.disableDepthTest();
         buffer.endBatch();
+    }
+
+    public static void drawHpBar( MatrixStack stack, LivingEntity livingEntity, float partialTicks )
+    {
+        float w, h;
+        double polyDegRange;
+        double degOffset;
+        double polyDegStep;
+
+        if( !hpBars.containsKey( livingEntity ) || hpBars.get( livingEntity ).getLivingEntity() != livingEntity )
+            hpBars.put( livingEntity, new HPBar( livingEntity ) );
+        HPBar hpBar = hpBars.get( livingEntity );
+        if( !mc.isPaused() )
+            hpBar.update( partialTicks );
+
+        boolean isPlayer = livingEntity == mc.player;
+//            if( isPlayer )
+//                continue;
+
+        float scale;
+        if( isPlayer )
+            scale = 0.3f;
+        else
+            scale = 1;
+        stack.mulPose( Vector3f.YP.rotationDegrees( hpBar.getYRot() ) );    //Vertical Rotation
+        stack.mulPose( Vector3f.XP.rotationDegrees( hpBar.getXRot() + (isPlayer ? playerPitch : 0) ) ); //Horizontal Rotation
+        float maxHp = livingEntity.getMaxHealth();
+        float currHp = livingEntity.getHealth();
+        float hpRatio = currHp / maxHp;
+        float hpBarHpRatio = hpBar.getHpPos();
+        polyDegRange = ( Math.max( 20, Math.min( 270, 60 * maxHp * 0.1f ) ) ) * scale;
+        degOffset = 180 - polyDegRange/2 - 30;
+        polyDegStep = polyDegRange / polyCount;
+
+        mc.getTextureManager().bind( HP_BAR );
+
+        float offset = livingEntity.getBbWidth() * 1.2f;
+        w = (float) ( 2*offset*Math.tan( Math.toRadians( polyDegStep/2 ) ) );
+        h = livingEntity.getBbHeight() * 0.1523f * scale;
+
+        //Draw bar outside
+        for( int i = 0; i < polyCount; i++ )
+        {
+            stack.pushPose();
+            stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
+            stack.translate( -w/2f, -h/2f - 0.1f, offset );
+            mirrorBlitColor( stack, 0, w, 0, h, 0, polyWidth, 32, polyWidth*i, 0, 512, 512, 0x777777, 255 );
+            stack.popPose();
+        }
+
+//            mc.getTextureManager().bind( HP_BAR_INSIDE );
+
+        float drawnRatio, nextDrawRatio, minPolyU = 0, maxPolyU = 1;
+
+        boolean hpLoss = hpRatio < hpBarHpRatio;
+
+        float tempHpBarHpRatio = hpLoss ? hpRatio : hpBarHpRatio;
+
+//            Draw bar inside
+        for( int i = 0; i < polyCount; i++ )
+        {
+            drawnRatio = i / (float) polyCount;
+            nextDrawRatio = (i+1) / (float) polyCount;
+            if( tempHpBarHpRatio < nextDrawRatio )
+                maxPolyU = (float) Util.map( tempHpBarHpRatio, drawnRatio, nextDrawRatio, 0, 1 );
+            stack.pushPose();
+            stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
+            stack.translate( -w/2f, -h/2f - 0.1f, offset );
+            mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, 32, polyWidth*i + polyWidth*minPolyU, 32, 512, 512, Util.hueToRGB( (float) Util.map( hpBarHpRatio, 0, 1, 360, 240 ), 1, 1 ), 200 );
+            stack.popPose();
+            if( maxPolyU < 1 )
+                break;
+        }
+
+        minPolyU = maxPolyU;
+        maxPolyU = 1;
+
+        //Draw Gain/Loss Indicator
+        if( hpBarHpRatio < hpRatio )
+        {
+            int firstIndicatorPoly = (int) ( polyCount*hpBarHpRatio );
+            int lastIndicatorPoly = (int) ( polyCount*hpRatio )+1;
+            //Gain
+            for( int i = firstIndicatorPoly; i < lastIndicatorPoly; i++ )
+            {
+                drawnRatio = i / (float) polyCount;
+                nextDrawRatio = (i+1) / (float) polyCount;
+
+                if( i+1 == lastIndicatorPoly )
+                    maxPolyU = (float) Util.map( hpRatio, drawnRatio, nextDrawRatio, 0, 1 );
+
+                stack.pushPose();
+                stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
+                stack.translate( -w/2f, -h/2f - 0.1f, offset );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, 32, polyWidth*i + polyWidth*minPolyU, 32, 512, 512, 0xffffff, 200 );
+                minPolyU = 0;
+                stack.popPose();
+            }
+        }
+        else if( hpRatio < hpBarHpRatio )
+        {
+            int firstIndicatorPoly = (int) ( polyCount*hpRatio );
+            int lastIndicatorPoly = (int) ( polyCount*hpBarHpRatio )+1;
+            //Loss
+            for( int i = firstIndicatorPoly; i < lastIndicatorPoly; i++ )
+            {
+                drawnRatio = i / (float) polyCount;
+                nextDrawRatio = (i+1) / (float) polyCount;
+
+                if( i+1 == lastIndicatorPoly )
+                    maxPolyU = (float) Util.map( hpBarHpRatio, drawnRatio, nextDrawRatio, 0, 1 );
+
+                stack.pushPose();
+                stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
+                stack.translate( -w/2f, -h/2f - 0.1f, offset );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, 32, polyWidth*i + polyWidth*minPolyU, 32, 512, 512, 0xff0000, 200 );
+                minPolyU = 0;
+                stack.popPose();
+            }
+        }
+    }
+
+    public static void drawNPCIndicator( MatrixStack stack, LivingEntity livingEntity )
+    {
+        mc.getTextureManager().bind( INDICATOR );
+        stack.pushPose();
+        int color = 0xfffff;
+        if( livingEntity instanceof AnimalEntity )
+            color = 0x00ff00;
+        else if( livingEntity instanceof MobEntity )
+            color = 0xff0000;
+        else if( livingEntity instanceof PlayerEntity )
+            color = 0x0000ff;
+        float scale = livingEntity.getScale()*0.1523f;
+        float height = scale*2;
+        stack.translate( 0, -livingEntity.getBbHeight()*0.3251f - height, 0 );
+        mirrorBlitColor( stack, -scale, scale, -height, height, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color, 255 );
+        stack.mulPose( Vector3f.YP.rotationDegrees( 90 ) );
+        mirrorBlitColor( stack, -scale, scale, -height, height, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color, 255 );
+        stack.popPose();
     }
 
     public static void mirrorBlit( MatrixStack matrixStack, float x1, float x2, float y1, float y2, float blitOffset, float uWidth, float vHeight, float uOffset, float vOffset, float textureWidth, float textureHeight )
