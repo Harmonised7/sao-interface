@@ -25,7 +25,9 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class Renderer
 {
@@ -48,6 +50,7 @@ public class Renderer
     //Indicator
     private static int indicatorWidth = 32;
     private static int indicatorHeight = 64;
+    public static Set<Integer> attackers = new HashSet<>();
 
     @SubscribeEvent
     public void handleRender( RenderWorldLastEvent event )
@@ -64,6 +67,7 @@ public class Renderer
         //Align to world
         stack.translate( -cameraCenter.get( Direction.Axis.X ) + 0.5, -cameraCenter.get( Direction.Axis.Y ) + 0.5, -cameraCenter.get( Direction.Axis.Z ) + 0.5 );
         stack.mulPose(Vector3f.XP.rotationDegrees(180.0F));
+
         for( LivingEntity livingEntity : world.getEntitiesOfClass( LivingEntity.class, new AxisAlignedBB( originBlockPos.above( renderDistance ).north( renderDistance ).east( renderDistance ), originBlockPos.below( renderDistance ).south( renderDistance ).west( renderDistance ) ) ) )
         {
             stack.pushPose();
@@ -209,7 +213,12 @@ public class Renderer
         if( livingEntity instanceof AnimalEntity )
             color = 0x00ff00;
         else if( livingEntity instanceof MobEntity )
-            color = 0xff0000;
+        {
+            if( attackers.contains( livingEntity.getId() ) )
+                color = 0xff0000;
+            else
+                color = 0xffaa00;
+        }
         else if( livingEntity instanceof PlayerEntity )
             color = 0x0000ff;
         float scale = livingEntity.getScale()*0.1523f;
