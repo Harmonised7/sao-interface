@@ -1,6 +1,6 @@
 package harmonised.sao_interface.network;
 
-import harmonised.sao_interface.client.Renderer;
+import harmonised.sao_interface.client.gui.Renderer;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 

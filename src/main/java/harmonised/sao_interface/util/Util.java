@@ -1,6 +1,8 @@
 package harmonised.sao_interface.util;
 
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 
 public class Util
@@ -90,5 +92,15 @@ public class Util
     public static double map( double input, double inLow, double inHigh, double outLow, double outHigh )
     {
         return ( (input - inLow) / (inHigh - inLow) ) * (outHigh - outLow) + outLow;
+    }
+
+    public static double getDistance( int x1, int y1, int x2, int y2 )
+    {
+        return Math.sqrt( Math.pow( x2 - x1, 2 ) + Math.pow( y2 - y1, 2 ) );
+    }
+
+    public static double getDistance( double x1, double y1, double x2, double y2 )
+    {
+        return Math.sqrt( Math.pow( x2 - x1, 2 ) + Math.pow( y2 - y1, 2 ) );
     }
 }
