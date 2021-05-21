@@ -30,24 +30,24 @@ import java.util.Set;
 public class Renderer
 {
     public static final Map<LivingEntity, HPBar> hpBars = new HashMap<>();
-    private static final ResourceLocation HP_BAR = Util.getResLoc( Reference.MOD_ID, "textures/gui/hpbar.png" );
-    private static final ResourceLocation ICONS_128 = Util.getResLoc( Reference.MOD_ID, "textures/gui/icons128.png" );
-    private static final ResourceLocation INDICATOR = Util.getResLoc( Reference.MOD_ID, "textures/gui/indicator32x64.png" );
+    private static final ResourceLocation HP_BAR = Util.getResLoc( Reference.MOD_ID, "textures/gui/hp_bar.png" );
+    private static final ResourceLocation INDICATOR = Util.getResLoc( Reference.MOD_ID, "textures/gui/indicator.png" );
     private static final Minecraft mc = Minecraft.getInstance();
 
     private static int blitOffset = 0;
 
     //HP Bar
     private static final int polyCount = 64;
-    private static final int fullBarWidth = 512;
+    private static final int fullBarWidth = 1024;
+    private static final int barHeight = 128;
     private static final float polyWidth = fullBarWidth/(float)polyCount;
     private static final int renderDistance = 128;
     private static final int outsideWallWidth = 2;
     private static final float playerPitch = -25;
 
     //Indicator
-    private static int indicatorWidth = 32;
-    private static int indicatorHeight = 64;
+    private static int indicatorWidth = 128;
+    private static int indicatorHeight = 256;
     public static Set<Integer> attackers = new HashSet<>();
 
     @SubscribeEvent
@@ -127,7 +127,7 @@ public class Renderer
             stack.pushPose();
             stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
             stack.translate( -w/2f, -h/2f - 0.1f, offset );
-            mirrorBlitColor( stack, 0, w, 0, h, 0, polyWidth, 32, polyWidth*i, 0, 512, 512, 0x777777, 255 );
+            mirrorBlitColor( stack, 0, w, 0, h, 0, polyWidth, barHeight, polyWidth*i, 0, fullBarWidth, barHeight*2, 0x777777, 255 );
             stack.popPose();
         }
 
@@ -149,7 +149,7 @@ public class Renderer
             stack.pushPose();
             stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
             stack.translate( -w/2f, -h/2f - 0.1f, offset );
-            mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, 32, polyWidth*i + polyWidth*minPolyU, 32, 512, 512, Util.hueToRGB( (float) Util.map( hpBarHpRatio, 0, 1, 360, 240 ), 1, 1 ), 200 );
+            mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, barHeight, polyWidth*i + polyWidth*minPolyU, barHeight, fullBarWidth, barHeight*2, Util.hueToRGB( (float) Util.map( hpBarHpRatio, 0, 1, 360, 240 ), 1, 1 ), 200 );
             stack.popPose();
             if( maxPolyU < 1 )
                 break;
@@ -175,7 +175,7 @@ public class Renderer
                 stack.pushPose();
                 stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, 32, polyWidth*i + polyWidth*minPolyU, 32, 512, 512, 0xffffff, 200 );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, barHeight, polyWidth*i + polyWidth*minPolyU, barHeight, fullBarWidth, barHeight*2, 0xffffff, 200 );
                 minPolyU = 0;
                 stack.popPose();
             }
@@ -196,7 +196,7 @@ public class Renderer
                 stack.pushPose();
                 stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, 32, polyWidth*i + polyWidth*minPolyU, 32, 512, 512, 0xff0000, 200 );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, barHeight, polyWidth*i + polyWidth*minPolyU, barHeight, fullBarWidth, barHeight*2, 0xff0000, 200 );
                 minPolyU = 0;
                 stack.popPose();
             }
