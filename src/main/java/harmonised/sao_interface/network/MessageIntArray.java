@@ -2,7 +2,6 @@ package harmonised.sao_interface.network;
 
 import harmonised.sao_interface.client.Renderer;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.HashSet;
@@ -16,7 +15,7 @@ public class MessageIntArray
 
     public MessageIntArray( Set<Integer> items )
     {
-        this.items = items;
+        this.items = new HashSet<>( items );
     }
 
     public MessageIntArray()
