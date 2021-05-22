@@ -29,6 +29,7 @@ public class SAOScreen extends Screen
     private int x;
     private int y;
 
+
     public SAOScreen( ITextComponent titleIn )
     {
         super(titleIn );

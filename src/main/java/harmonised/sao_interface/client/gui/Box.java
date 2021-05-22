@@ -22,6 +22,13 @@ public class Box extends Widget
     private final int buttonGap = 4;
     private final int midX, midY;
 
+    //Box Arrow
+    private static final int boxArrowWidth = 68;
+    private static final int boxArrowHeight = 512;
+
+    //Button Arrow
+    private static final int buttonArrowSize = 128;
+
     public Box( List<ListButton> buttons )
     {
         super( 0, 0, 0, 0, new TranslationTextComponent( "" ) );

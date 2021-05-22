@@ -30,8 +30,6 @@ import java.util.Set;
 public class Renderer
 {
     public static final Map<LivingEntity, HPBar> hpBars = new HashMap<>();
-    private static final ResourceLocation HP_BAR = Util.getResLoc( Reference.MOD_ID, "textures/gui/hp_bar.png" );
-    private static final ResourceLocation INDICATOR = Util.getResLoc( Reference.MOD_ID, "textures/gui/indicator.png" );
     private static final Minecraft mc = Minecraft.getInstance();
 
     private static int blitOffset = 0;
@@ -115,7 +113,7 @@ public class Renderer
         degOffset = 180 - polyDegRange/2 - 30;
         polyDegStep = polyDegRange / polyCount;
 
-        mc.getTextureManager().bind( HP_BAR );
+        mc.getTextureManager().bind( Icons.HP_BAR );
 
         float offset = livingEntity.getBbWidth() * 1.2f;
         w = (float) ( 2*offset*Math.tan( Math.toRadians( polyDegStep/2 ) ) );
@@ -205,7 +203,7 @@ public class Renderer
 
     public static void drawNPCIndicator( MatrixStack stack, LivingEntity livingEntity )
     {
-        mc.getTextureManager().bind( INDICATOR );
+        mc.getTextureManager().bind( Icons.INDICATOR );
         stack.pushPose();
         int color = 0xfffff;
         if( livingEntity instanceof AnimalEntity )

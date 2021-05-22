@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.ItemRenderer;
+import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.StringTextComponent;
@@ -17,21 +18,41 @@ import net.minecraft.util.text.TranslationTextComponent;
 
 public class ListButton extends Button
 {
-    private final ResourceLocation circleButton = new ResourceLocation( Reference.MOD_ID, "textures/gui/circle_button.png" );
     private Minecraft mc = Minecraft.getInstance();
     private FontRenderer font = mc.font;
+    private boolean isCircle = false;
     public int style = 1;
     public ResourceLocation background, foreground;
     public String regKey, buttonText;
     ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
     Minecraft minecraft = Minecraft.getInstance();
 
+
+    private static final int circleButtonSize = 128;
+
+    private static final int rectangleButtonWidth = 4;
+    private static final int rectangleButtonHeight = 1;
+
+
+    public ListButton makeCircleButton( String regKey, IPressable onPress )
+    {
+        ListButton button = new ListButton( 0, 0, regKey, "", onPress );
+        button.setStyle( 1 );
+        return button;
+    }
+
+    public ListButton makeRectangleButton( String regKey, IPressable onPress )
+    {
+        ListButton button = new ListButton( 0, 0, regKey, "", onPress );
+        button.setStyle( 2 );
+        return button;
+    }
+
     public ListButton( int posX, int posY, String regKey, String buttonText, IPressable onPress )
     {
         super(posX, posY, 0, 0, new TranslationTextComponent( "" ), onPress);
         this.regKey = regKey;
         this.buttonText = buttonText;
-        setStyle( 1 );
     }
 
     public void setStyle( int style )
@@ -39,13 +60,15 @@ public class ListButton extends Button
         switch( style )
         {
             case 1:
-                background = new ResourceLocation( Reference.MOD_ID, "textures/gui/circle_button.png" );
+                background = Icons.CIRCLE_BUTTON;
                 width = 16;
                 height = 16;
                 break;
 
             case 2:
-
+                background = Icons.RECTANGLE_BUTTON;
+                width = 48;
+                height = 16;
                 break;
 
             default:
@@ -73,9 +96,9 @@ public class ListButton extends Button
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        mc.getTextureManager().bind( circleButton );
+        mc.getTextureManager().bind( Icons.CIRCLE_BUTTON );
 //        this.blit( stack, this.mouseX - getWidth()/4, this.mouseY - getHeight()/4, 0, 0, 16, 16, 16, 16 );
-        Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeight(), 0, 128, 128, 0, 0, 128, 128, isHovered() ? 0x00ff00 : 0xffffff, 255  );
+        Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeight(), 0, circleButtonSize, circleButtonSize, 0, 0, circleButtonSize, circleButtonSize, isHovered() ? 0x00ff00 : 0xffffff, 255  );
 
         this.renderBg( stack, minecraft, mouseX, mouseY);
         int j = getFGColor();
