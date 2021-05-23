@@ -1,10 +1,10 @@
-package harmonised.sao_interface.client.gui;
+package harmonised.sao.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import harmonised.sao_interface.util.Reference;
-import harmonised.sao_interface.util.Util;
+import harmonised.sao.util.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.LivingEntity;
@@ -12,12 +12,13 @@ import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -95,8 +96,8 @@ public class Renderer
             hpBar.update( partialTicks );
 
         boolean isPlayer = livingEntity == mc.player;
-//            if( isPlayer )
-//                continue;
+            if( isPlayer )
+                return;
 
         float scale;
         if( isPlayer )
@@ -289,5 +290,11 @@ public class Renderer
 
         RenderSystem.enableAlphaTest();
         WorldVertexBufferUploader.end( bufferbuilder );
+    }
+
+    public static void drawCenteredString( MatrixStack stack, FontRenderer font, ITextComponent msg, float x, float y, int color )
+    {
+        IReorderingProcessor ireorderingprocessor = msg.getVisualOrderText();
+        font.drawShadow(stack, ireorderingprocessor, x - font.width(ireorderingprocessor) / 2f, y, color );
     }
 }

@@ -1,4 +1,4 @@
-package harmonised.sao_interface.client.gui;
+package harmonised.sao.client.gui;
 
 import net.minecraft.entity.LivingEntity;
 

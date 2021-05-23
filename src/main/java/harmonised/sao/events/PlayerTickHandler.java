@@ -1,11 +1,6 @@
-package harmonised.sao_interface.events;
+package harmonised.sao.events;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraftforge.event.TickEvent;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 public class PlayerTickHandler
 {

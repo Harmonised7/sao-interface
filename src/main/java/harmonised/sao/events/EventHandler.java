@@ -1,7 +1,6 @@
-package harmonised.sao_interface.events;
+package harmonised.sao.events;
 
-import harmonised.sao_interface.client.gui.Renderer;
-import harmonised.sao_interface.util.Reference;
+import harmonised.sao.util.Reference;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.event.TickEvent;

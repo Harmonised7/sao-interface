@@ -1,9 +1,9 @@
-package harmonised.sao_interface;
+package harmonised.sao;
 
-import harmonised.sao_interface.client.ClientHandler;
-import harmonised.sao_interface.events.EventHandler;
-import harmonised.sao_interface.network.NetworkHandler;
-import harmonised.sao_interface.util.Reference;
+import harmonised.sao.client.ClientHandler;
+import harmonised.sao.events.EventHandler;
+import harmonised.sao.network.NetworkHandler;
+import harmonised.sao.util.Reference;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -16,7 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @Mod( Reference.MOD_ID )
-public class SAOInterfaceMod
+public class SAOMod
 {
     private static final String PROTOCOL_VERSION = "1";
     private static final Logger LOGGER = LogManager.getLogger();
@@ -29,7 +29,7 @@ public class SAOInterfaceMod
             .simpleChannel();
 
 
-    public SAOInterfaceMod()
+    public SAOMod()
     {
         FMLJavaModLoadingContext.get().getModEventBus().addListener( this::modsLoading );
         FMLJavaModLoadingContext.get().getModEventBus().addListener( this::clientLoading );

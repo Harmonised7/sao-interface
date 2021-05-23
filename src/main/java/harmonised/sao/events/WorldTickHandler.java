@@ -1,8 +1,8 @@
-package harmonised.sao_interface.events;
+package harmonised.sao.events;
 
-import harmonised.sao_interface.network.MessageIntArray;
-import harmonised.sao_interface.network.NetworkHandler;
-import harmonised.sao_interface.util.Util;
+import harmonised.sao.network.MessageIntArray;
+import harmonised.sao.network.NetworkHandler;
+import harmonised.sao.util.Util;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
