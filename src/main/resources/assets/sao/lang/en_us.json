@@ -6,5 +6,10 @@
   "sao.blocks": "Blocks",
   "sao.logout": "Logout",
   "sao.armor": "Armor",
-  "sao.weapons": "Weapons"
+  "sao.weapons": "Weapons",
+  "sao.head": "Head",
+  "sao.chest": "Chest",
+  "sao.legs": "Legs",
+  "sao.feet": "Feet",
+  "sao.empty": "Empty"
 }

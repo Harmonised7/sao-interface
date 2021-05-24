@@ -17,8 +17,10 @@ public class Box extends Widget
     public float x, y;
     private final int buttonHeight = 16;
     private int buttonWidth = 16;
-    private final int buttonGap = 4;
+    public final int buttonGap = 4;
     private final int midX, midY;
+    private final ListButton emptyButton;
+    public ListButton activeButton = null;
     public final String name;
 
     //Box Arrow
@@ -36,13 +38,14 @@ public class Box extends Widget
         this.name = name;
         midX = sr.getGuiScaledWidth()/2;
         midY = sr.getGuiScaledHeight()/2;
+        emptyButton = new ListButton( this );
+        emptyButton.setMsg( new TranslationTextComponent( "sao.empty" ) );
     }
 
     @Override
     public int getHeight()
     {
-        int buttonsHeight = buttons.size() * getButtonHeight();
-        return buttonsHeight + buttons.size() * buttonGap/2;
+        return buttons.size()*getButtonHeight() + ( Math.max( 0, buttons.size()-1 ) )*buttonGap;
     }
 
     @Override
@@ -54,13 +57,22 @@ public class Box extends Widget
     @Override
     public void render( MatrixStack stack, int mouseX, int mouseY, float partialTicks )
     {
-        int i = 0;
-        for( ListButton button : buttons )
+        if( buttons.size() > 0 )
         {
-            button.x = x;
-            button.y = y + (buttonHeight+buttonGap)*i;
-            button.renderButton( stack, mouseX, mouseY, partialTicks );
-            i++;
+            int i = 0;
+            for( ListButton button : buttons )
+            {
+                button.x = x;
+                button.y = y + (buttonHeight+buttonGap)*i;
+                button.renderButton( stack, mouseX, mouseY, partialTicks );
+                i++;
+            }
+        }
+        else
+        {
+            emptyButton.x = x;
+            emptyButton.y = y - emptyButton.getHeight()/2f;
+            emptyButton.renderButton( stack, mouseX, mouseY, partialTicks );
         }
     }
 
@@ -111,6 +123,26 @@ public class Box extends Widget
     public void addButton( ListButton button )
     {
         this.buttons.add( button );
-        buttonWidth = Math.max( buttonWidth, button.getWidth() );
+        if( button.getWidth() > buttonWidth )
+        {
+            int newButtonWidth = button.getWidth();
+            buttonWidth = newButtonWidth;
+            for( ListButton listButton : buttons )
+            {
+                listButton.setWidth( newButtonWidth );
+            }
+        }
+        else
+            button.setWidth( buttonWidth );
+    }
+
+    public void clearButtons()
+    {
+        buttons.clear();
+    }
+
+    public void setActiveButton( ListButton button )
+    {
+        activeButton = button;
     }
 }

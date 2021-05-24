@@ -28,7 +28,7 @@ public class CircleButton extends ListButton
         RenderSystem.defaultBlendFunc();
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         mc.getTextureManager().bind( background );
-        Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeight(), 0, circleButtonSize, circleButtonSize, 0, 0, circleButtonSize, circleButtonSize, isHovered() ? 0x00ff00 : 0x8d8d8d, 255  );
+        Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeight(), 0, circleButtonSize, circleButtonSize, 0, 0, circleButtonSize, circleButtonSize, isHovered() ? 0x00ff00 : ( isActive() ? 0xff22ff : 0x8d8d8d ), 255  );
 
         if( foreground != null )
         {

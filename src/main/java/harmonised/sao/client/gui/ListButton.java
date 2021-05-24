@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.ItemRenderer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
@@ -55,7 +56,7 @@ public class ListButton extends Button
         RenderSystem.defaultBlendFunc();
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         mc.getTextureManager().bind( background );
-        Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeight(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, isHovered() ? 0x00ff00 : 0xffffff, 255  );
+        Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeight(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, isHovered() ? 0x00ff00 : ( isActive() ? 0xff22ff : 0xffffff ), 255  );
 
 //        System.out.println( x + " " + y );
 //        this.renderBg( stack, mc, mouseX, mouseY);
@@ -87,11 +88,31 @@ public class ListButton extends Button
         return this;
     }
 
-    public ListButton setItem( ItemStack itemStack )
+    public ListButton setItem( Item item, boolean setName )
+    {
+        return this.setItemStack( new ItemStack( item ), setName );
+    }
+    public ListButton setItemStack( ItemStack itemStack, boolean setName )
     {
         foreground = null;
         this.itemStack = itemStack;
-        this.setMessage( new StringTextComponent( itemStack.getCount() + "x " + itemStack.getHoverName().getString() ) );
+        if( setName )
+            return setMsg( itemStack );
+        return this;
+    }
+
+    public ListButton setMsg( ItemStack itemStack )
+    {
+        return setMsg( new StringTextComponent( ( itemStack.getMaxStackSize() > 1 ? itemStack.getCount() + "x " : "" ) + itemStack.getHoverName().getString() ) );
+
+    }
+
+    public ListButton setMsg( ITextComponent msg )
+    {
+        super.setMessage( msg );
+        int msgWidth = font.width( msg ) + 8;
+        if( getWidth() < msgWidth )
+            setWidth( msgWidth );
         return this;
     }
 
@@ -101,9 +122,18 @@ public class ListButton extends Button
         return this;
     }
 
-    public ListButton setMsg( ITextComponent msg )
+    public int getPos()
     {
-        super.setMessage( msg );
-        return this;
+        return box.buttons.indexOf( this );
+    }
+
+    public void setAsActive()
+    {
+        box.setActiveButton( this );
+    }
+
+    public boolean isActive()
+    {
+        return box.activeButton == this;
     }
 }
