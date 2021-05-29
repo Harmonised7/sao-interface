@@ -1,16 +1,24 @@
 package harmonised.sao.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import harmonised.sao.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.model.IBakedModel;
+import net.minecraft.client.renderer.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.texture.AtlasTexture;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -19,14 +27,14 @@ import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.ITextProperties;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.client.gui.GuiUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Renderer
 {
@@ -85,9 +93,6 @@ public class Renderer
     public static void drawHpBar( MatrixStack stack, LivingEntity livingEntity, float partialTicks )
     {
         float w, h;
-        double polyDegRange;
-        double degOffset;
-        double polyDegStep;
 
         if( !hpBars.containsKey( livingEntity ) || hpBars.get( livingEntity ).getLivingEntity() != livingEntity )
             hpBars.put( livingEntity, new HPBar( livingEntity ) );
@@ -96,35 +101,65 @@ public class Renderer
             hpBar.update( partialTicks );
 
         boolean isPlayer = livingEntity == mc.player;
-            if( isPlayer )
-                return;
+//            if( isPlayer )
+//                return;
 
         float scale;
         if( isPlayer )
+        {
+//            RenderSystem.disableDepthTest();
             scale = 0.3f;
+        }
         else
+        {
             scale = 1;
+        }
+
         stack.mulPose( Vector3f.YP.rotationDegrees( hpBar.getYRot() ) );    //Vertical Rotation
         stack.mulPose( Vector3f.XP.rotationDegrees( hpBar.getXRot() + (isPlayer ? playerPitch : 0) ) ); //Horizontal Rotation
         float maxHp = livingEntity.getMaxHealth();
         float currHp = livingEntity.getHealth();
         float hpRatio = currHp / maxHp;
         float hpBarHpRatio = hpBar.getHpPos();
-        polyDegRange = ( Math.max( 20, Math.min( 270, 60 * maxHp * 0.1f ) ) ) * scale;
-        degOffset = 180 - polyDegRange/2 - 30;
-        polyDegStep = polyDegRange / polyCount;
+
+        float polyDegRange = ( Math.max( 20, Math.min( 270, 60 * maxHp * 0.1f ) ) ) * scale;
+        float degOffset = 180 - polyDegRange/2 - 30;
+        float polyDegStep = polyDegRange / polyCount;
+
+        float livingEntityWidth = livingEntity.getBbWidth();
+        float offset = livingEntityWidth * 1.2f;
+        w = (float) ( 2*offset*Math.tan( Math.toRadians( polyDegStep/2 ) ) );
+        h = livingEntity.getBbHeight() * 0.1f * scale;
+
+        ITextComponent livingEntityNameComp = livingEntity.getName();
+        String livingEntityName = livingEntityNameComp.getString();
+
+
+        //Name
+        if( isPlayer )
+        {
+            {
+                float textScale = (offset*100 / livingEntityWidth/3) / scale;
+                Vector3f textPos = new Vector3f( (-w/2f)*scale, (-h/2f - 0.1f)*scale, (offset+0.02f)*scale );
+                drawCurvedText( stack, livingEntityName, textPos, textScale, offset, degOffset, isPlayer );
+            }
+            {
+                stack.pushPose();
+
+                stack.popPose();
+            }
+
+            RenderSystem.enableBlend();
+            RenderSystem.enableDepthTest();
+        }
 
         mc.getTextureManager().bind( Icons.HP_BAR );
-
-        float offset = livingEntity.getBbWidth() * 1.2f;
-        w = (float) ( 2*offset*Math.tan( Math.toRadians( polyDegStep/2 ) ) );
-        h = livingEntity.getBbHeight() * 0.1523f * scale;
 
         //Draw bar outside
         for( int i = 0; i < polyCount; i++ )
         {
             stack.pushPose();
-            stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
+            stack.mulPose( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
             stack.translate( -w/2f, -h/2f - 0.1f, offset );
             mirrorBlitColor( stack, 0, w, 0, h, 0, polyWidth, barHeight, polyWidth*i, 0, fullBarWidth, barHeight*2, 0x777777, 255 );
             stack.popPose();
@@ -146,7 +181,7 @@ public class Renderer
             if( tempHpBarHpRatio < nextDrawRatio )
                 maxPolyU = (float) Util.map( tempHpBarHpRatio, drawnRatio, nextDrawRatio, 0, 1 );
             stack.pushPose();
-            stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
+            stack.mulPose( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
             stack.translate( -w/2f, -h/2f - 0.1f, offset );
             mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, barHeight, polyWidth*i + polyWidth*minPolyU, barHeight, fullBarWidth, barHeight*2, Util.hueToRGB( (float) Util.map( hpBarHpRatio, 0, 1, 360, 240 ), 1, 1 ), 200 );
             stack.popPose();
@@ -172,7 +207,7 @@ public class Renderer
                     maxPolyU = (float) Util.map( hpRatio, drawnRatio, nextDrawRatio, 0, 1 );
 
                 stack.pushPose();
-                stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
+                stack.mulPose( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
                 mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, barHeight, polyWidth*i + polyWidth*minPolyU, barHeight, fullBarWidth, barHeight*2, 0xffffff, 200 );
                 minPolyU = 0;
@@ -193,7 +228,7 @@ public class Renderer
                     maxPolyU = (float) Util.map( hpBarHpRatio, drawnRatio, nextDrawRatio, 0, 1 );
 
                 stack.pushPose();
-                stack.mulPose( Vector3f.YP.rotationDegrees( (float) ( polyDegStep*i + degOffset ) ) );
+                stack.mulPose( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
                 mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, barHeight, polyWidth*i + polyWidth*minPolyU, barHeight, fullBarWidth, barHeight*2, 0xff0000, 200 );
                 minPolyU = 0;
@@ -224,6 +259,23 @@ public class Renderer
         mirrorBlitColor( stack, -scale, scale, -height, height, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color, 255 );
         stack.mulPose( Vector3f.YP.rotationDegrees( 90 ) );
         mirrorBlitColor( stack, -scale, scale, -height, height, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color, 255 );
+        stack.popPose();
+    }
+
+    public static void drawCurvedText( MatrixStack stack, String text, Vector3f pos, float scale, float offset, float degOffset, boolean isPlayer )
+    {
+        stack.pushPose();
+
+        stack.scale( 1/scale, 1/scale, 1/scale );
+        for( int i = 0; i < text.length(); i++ )
+        {
+            char c = text.charAt(i);
+            stack.pushPose();
+            stack.mulPose( Vector3f.YP.rotationDegrees( 3 + degOffset + i*10*(float) Math.atan( 1/(offset+0.02f)*scale ) ) );
+            stack.translate( pos.x(), pos.y(), pos.z() );
+            drawString( stack, mc.font, new StringTextComponent( "" + c ), 0, isPlayer ? -5 : -7, 0xffffff );
+            stack.popPose();
+        }
         stack.popPose();
     }
 
@@ -296,5 +348,75 @@ public class Renderer
     {
         IReorderingProcessor ireorderingprocessor = msg.getVisualOrderText();
         font.drawShadow(stack, ireorderingprocessor, x - font.width(ireorderingprocessor) / 2f, y, color );
+    }
+
+    public static void drawString( MatrixStack stack, FontRenderer font, String msg, float x, float y, int color )
+    {
+        font.drawShadow(stack, msg, x, y, color);
+    }
+
+    public static void drawString( MatrixStack stack, FontRenderer font, ITextComponent msg, float x, float y, int color )
+    {
+        font.drawShadow(stack, msg, x, y, color);
+    }
+
+    public static void renderTooltip( MatrixStack stack, ItemStack itemStack, int x, int y )
+    {
+        net.minecraftforge.fml.client.gui.GuiUtils.preItemToolTip(itemStack);
+        renderWrappedToolTip( stack, itemStack.getTooltipLines( mc.player, mc.options.advancedItemTooltips ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL ), x, y );
+        net.minecraftforge.fml.client.gui.GuiUtils.postItemToolTip();
+    }
+
+    public static void renderWrappedToolTip( MatrixStack matrixStack, List<? extends ITextProperties> tooltips, int mouseX, int mouseY )
+    {
+        GuiUtils.drawHoveringText(matrixStack, tooltips, mouseX, mouseY, getScaledWidth(), getScaledHeight(), -1, mc.font );
+    }
+
+    public static int getScaledWidth()
+    {
+        return mc.getWindow().getGuiScaledWidth();
+    }
+
+    public static int getScaledHeight()
+    {
+        return mc.getWindow().getGuiScaledHeight();
+    }
+
+    public static void renderGuiItem( ItemStack itemStack, float x, float y )
+    {
+        Minecraft mc = Minecraft.getInstance();
+        TextureManager textureManager = mc.getTextureManager();
+        ItemRenderer itemRenderer = mc.getItemRenderer();
+        IBakedModel bakedModel = itemRenderer.getModel( itemStack, null, null );
+        RenderSystem.pushMatrix();
+        textureManager.bind(AtlasTexture.LOCATION_BLOCKS);
+        textureManager.getTexture(AtlasTexture.LOCATION_BLOCKS).setFilter(false, false);
+        RenderSystem.enableRescaleNormal();
+        RenderSystem.enableAlphaTest();
+        RenderSystem.defaultAlphaFunc();
+        RenderSystem.enableBlend();
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.translatef( x, y, 100.0F + itemRenderer.blitOffset );
+        RenderSystem.translatef(8.0F, 8.0F, 0.0F);
+        RenderSystem.scalef(1.0F, -1.0F, 1.0F);
+        RenderSystem.scalef(16.0F, 16.0F, 16.0F);
+        MatrixStack matrixstack = new MatrixStack();
+        IRenderTypeBuffer.Impl irendertypebuffer$impl = Minecraft.getInstance().renderBuffers().bufferSource();
+        boolean flag = !bakedModel.usesBlockLight();
+        if (flag) {
+            RenderHelper.setupForFlatItems();
+        }
+
+        itemRenderer.render( itemStack, ItemCameraTransforms.TransformType.GUI, false, matrixstack, irendertypebuffer$impl, 15728880, OverlayTexture.NO_OVERLAY, bakedModel );
+        irendertypebuffer$impl.endBatch();
+        RenderSystem.enableDepthTest();
+        if (flag) {
+            RenderHelper.setupFor3DItems();
+        }
+
+        RenderSystem.disableAlphaTest();
+        RenderSystem.disableRescaleNormal();
+        RenderSystem.popMatrix();
     }
 }

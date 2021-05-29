@@ -10,7 +10,6 @@ import java.util.function.Supplier;
 
 public class MessageIntArray
 {
-    public int length;
     Set<Integer> items;
 
     public MessageIntArray( Set<Integer> items )
@@ -23,7 +22,7 @@ public class MessageIntArray
         items = new HashSet<>();
     }
 
-    public static MessageIntArray decode( PacketBuffer buf )
+    public static MessageIntArray decode(PacketBuffer buf )
     {
         MessageIntArray packet = new MessageIntArray();
 
@@ -36,7 +35,7 @@ public class MessageIntArray
         return packet;
     }
 
-    public static void encode( MessageIntArray packet, PacketBuffer buf )
+    public static void encode(MessageIntArray packet, PacketBuffer buf )
     {
         buf.writeInt( packet.items.size() );
         for( int item : packet.items )
@@ -45,7 +44,7 @@ public class MessageIntArray
         }
     }
 
-    public static void handlePacket( MessageIntArray packet, Supplier<NetworkEvent.Context> ctx )
+    public static void handlePacket(MessageIntArray packet, Supplier<NetworkEvent.Context> ctx )
     {
         ctx.get().enqueueWork(() ->
         {

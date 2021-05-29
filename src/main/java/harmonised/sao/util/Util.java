@@ -1,12 +1,17 @@
 package harmonised.sao.util;
 
+import harmonised.sao.network.MessageCraft;
+import harmonised.sao.network.MessageSwapItems;
+import harmonised.sao.network.NetworkHandler;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.inventory.Inventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+
+import java.util.*;
 
 public class Util
 {
@@ -152,7 +157,7 @@ public class Util
                 inv.setItem( b, itemA );
                 if( player.getCommandSenderWorld().isClientSide() )
                 {
-                    //Send Packet
+                    NetworkHandler.sendToServer( new MessageSwapItems( a, b ) );
                 }
                 return true;
             }
@@ -167,5 +172,45 @@ public class Util
             return swapItems( player, a, b );
         else
             return false;
+    }
+
+    public static int canCraftX( PlayerInventory inv, ItemStack[] ingredients )
+    {
+        if( ingredients.length == 0 )
+            return 0;
+        Map<Item, Integer> ingredientsPerCraftMap = new HashMap<>();
+        Map<Item, Integer> suppliesMap = new HashMap<>();
+
+        //Init Maps
+        for( ItemStack ingredient : ingredients )
+        {
+            ingredientsPerCraftMap.put( ingredient.getItem(), ingredient.getCount() );
+        }
+
+        //Count Inventory Ingredients
+        for( ItemStack itemStack : inv.items )
+        {
+            Item item = itemStack.getItem();
+            if( ingredientsPerCraftMap.containsKey( item ) )
+            {
+                if( !suppliesMap.containsKey( item ) )
+                    suppliesMap.put( item, 0 );
+                suppliesMap.replace( item, suppliesMap.get( item ) + itemStack.getCount() );
+            }
+        }
+
+        //Missing Ingredients
+        if( suppliesMap.size() < ingredientsPerCraftMap.size() )
+            return 0;
+        Integer lowestCraftX = null;
+
+        for( Map.Entry<Item, Integer> supply : suppliesMap.entrySet() )
+        {
+            int canCraftX = supply.getValue() / ingredientsPerCraftMap.get( supply.getKey() );
+            if( lowestCraftX == null || canCraftX < lowestCraftX )
+                lowestCraftX = canCraftX;
+        }
+
+        return lowestCraftX == null ? 0 : lowestCraftX;
     }
 }

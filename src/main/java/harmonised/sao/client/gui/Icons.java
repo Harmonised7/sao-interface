@@ -18,6 +18,9 @@ public class Icons
     //Icons
     public static final ResourceLocation ICON_BASE          = getSAOResLoc( "textures/gui/icons/icon_base.png" );
     public static final ResourceLocation SWORD              = getSAOResLoc( "textures/gui/icons/sword.png" );
+    public static final ResourceLocation ONE_PERSON         = getSAOResLoc( "textures/gui/icons/one_person.png" );
+    public static final ResourceLocation TWO_PEOPLE         = getSAOResLoc( "textures/gui/icons/two_people.png" );
+    public static final ResourceLocation GEAR               = getSAOResLoc( "textures/gui/icons/gear.png" );
 
     public static ResourceLocation getSAOResLoc( String path )
     {

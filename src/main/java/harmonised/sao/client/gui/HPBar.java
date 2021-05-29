@@ -27,7 +27,7 @@ public class HPBar
     {
         //Init
         long ms = System.currentTimeMillis();
-        float d = ( ms - lastUpdate ) * 0.01f;
+        float d = Math.min( 1, ( ms - lastUpdate ) * 0.01f );
         lastUpdate = ms;
 
         //X Rotation
