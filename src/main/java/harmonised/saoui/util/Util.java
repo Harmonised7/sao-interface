@@ -220,4 +220,9 @@ public class Util
         else
             return original + diff * d;
     }
+
+    public static double cap( double input, double min, double max )
+    {
+        return Math.max( min, Math.min( max, input ) );
+    }
 }

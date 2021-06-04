@@ -8,6 +8,7 @@ import harmonised.saoui.network.NetworkHandler;
 import harmonised.saoui.util.Reference;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -25,6 +26,7 @@ public class SAOMod
 
     private static final String PROTOCOL_VERSION = "1";
     private static final Logger LOGGER = LogManager.getLogger();
+    public static boolean pmmoLoaded = false;
 
     public static SimpleChannel HANDLER = NetworkRegistry.ChannelBuilder
             .named( new ResourceLocation( Reference.MOD_ID, "main_channel" ) )
@@ -36,6 +38,7 @@ public class SAOMod
 
     public SAOMod()
     {
+        pmmoLoaded = ModList.get().isLoaded( "pmmo" );
         FMLJavaModLoadingContext.get().getModEventBus().addListener( this::modsLoading );
         FMLJavaModLoadingContext.get().getModEventBus().addListener( this::clientLoading );
         Configs.register( Reference.MOD_ID, SaoConfig.class );

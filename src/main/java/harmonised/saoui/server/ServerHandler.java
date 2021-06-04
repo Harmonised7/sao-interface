@@ -23,11 +23,11 @@ public class ServerHandler
 
         RecipeManager recipeManager = server.getRecipeManager();
         IRecipe recipe = recipeManager.byKey( recipeResLoc ).get();
+        RecipeItemHelper stackedContents = new RecipeItemHelper();
 
         System.out.println( recipe.getClass().getName() );
 
-//        inv.fillStackedContents( craftInv );
-
+        inv.fillStackedContents( stackedContents );
         net.minecraftforge.common.ForgeHooks.setCraftingPlayer( player );
         NonNullList<ItemStack> nonnulllist = recipeManager.getRemainingItemsFor( IRecipeType.CRAFTING, craftInv, world );
         net.minecraftforge.common.ForgeHooks.setCraftingPlayer(null);

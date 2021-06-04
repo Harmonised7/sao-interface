@@ -95,9 +95,7 @@ public class ListButton extends Button
             backgroundColor = hoverColor;
         else if( itemStack != null )
         {
-            if( mc.player.inventory.getSelected().equals( itemStack ) )
-                backgroundColor = activeColor;
-            else if( itemStack.isDamageableItem() && itemStack.isDamaged() )
+            if( color != activeColor && itemStack.isDamageableItem() && itemStack.isDamaged() )
             {
                 int damageIn8Bit = (int) Util.map( itemStack.getDamageValue(), 0, itemStack.getMaxDamage(), 200, 0 );
                 backgroundColor = damageIn8Bit | damageIn8Bit << 8 | 255 << 16;

@@ -1,10 +1,12 @@
 package harmonised.saoui.client.gui;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.mojang.blaze3d.matrix.MatrixStack;
+import harmonised.pmmo.skills.Skill;
+import harmonised.pmmo.util.DP;
+import harmonised.pmmo.util.XP;
+import harmonised.saoui.SAOMod;
 import harmonised.saoui.client.ClientHandler;
-import harmonised.saoui.config.SaoConfig;
 import harmonised.saoui.network.MessageCraft;
 import harmonised.saoui.network.NetworkHandler;
 import harmonised.saoui.util.Reference;
@@ -19,14 +21,13 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.ClientRecipeBook;
 import net.minecraft.client.util.RecipeBookCategories;
 import net.minecraft.client.util.SearchTreeManager;
-import net.minecraft.entity.ai.attributes.Attribute;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.*;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.RecipeItemHelper;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.ToolType;
 
@@ -45,7 +46,8 @@ public class SAOScreen extends Screen
     private final int boxesGap = 6;
     private int x;
     private int y;
-
+    private static double xOffset;
+    private static double yOffset;
 
     public SAOScreen( ITextComponent titleIn )
     {
@@ -88,7 +90,6 @@ public class SAOScreen extends Screen
             {
                 System.out.println( "Closing box " + layer );
                 prevLayerBox.setActiveButton( null );
-                System.out.println( sameLayerBox.getPos() );
                 boxes.remove( layer );
                 return;
             }
@@ -121,8 +122,8 @@ public class SAOScreen extends Screen
 
         for ( Box box : boxes )
         {
-            box.x = middleX + compound;
-            box.y = middleY - box.getHeight() / 2f;
+            box.x = (int) xOffset + middleX + compound;
+            box.y = (int) yOffset + middleY - box.getHeight() / 2f;
             lastWidth = box.getWidth() + boxesGap;
 
             compound += lastWidth;
@@ -153,6 +154,7 @@ public class SAOScreen extends Screen
         updatePositions( false );
         for( Box box : boxes )
         {
+
             box.render( stack, mouseX, mouseY, partialTicks );
         }
         for( Box box : boxes )
@@ -215,6 +217,10 @@ public class SAOScreen extends Screen
     @Override
     public boolean mouseDragged( double mouseX, double mouseY, int button, double deltaX, double deltaY )
     {
+        SAOScreen.xOffset += deltaX;
+        SAOScreen.yOffset += deltaY;
+        SAOScreen.xOffset = Util.cap( SAOScreen.xOffset, -sr.getGuiScaledWidth()/2D, sr.getGuiScaledWidth()/2D );
+        SAOScreen.yOffset = Util.cap( SAOScreen.yOffset, -sr.getGuiScaledHeight()/2D, sr.getGuiScaledHeight()/2D );
         return super.mouseDragged( mouseX, mouseY, button, deltaX, deltaY );
     }
 
@@ -227,6 +233,14 @@ public class SAOScreen extends Screen
 
             openBox( (ListButton) theButton, getPlayerBox() );
         }));
+
+        CircleButton skillsButton = (CircleButton) new CircleButton( box ).setIcon( Icons.TWO_PEOPLE ).onPress(theButton ->
+        {
+            openBox( (ListButton) theButton, getPmmoHiscoreBox() );
+        });
+        if( !SAOMod.pmmoLoaded )
+            skillsButton.lock();
+        box.addButton( skillsButton );
 
         box.addButton( new CircleButton( box ).setIcon( Icons.GEAR ).onPress( theButton ->
         {
@@ -322,6 +336,46 @@ public class SAOScreen extends Screen
                 }
             }
         }
+    }
+
+    private static Box getPmmoHiscoreBox()
+    {
+        Box box = new Box( "hiscore" );
+
+        String playerName = mc.player.getDisplayName().getString();
+        box.addButton( new ListButton( box ).setMsg( mc.player.getDisplayName() ).onPress(theButton ->
+        {
+            openBox( (ListButton) theButton, getPmmoSkillsBox( mc.player.getUUID() ) );
+        }));
+
+        for( Map.Entry<UUID, String> entry : XP.playerNames.entrySet() )
+        {
+            if( entry.getValue().equals( playerName ) )
+                continue;
+            box.addButton( new ListButton( box ).setMsg( new StringTextComponent( entry.getValue() ) ).onPress(theButton ->
+            {
+                openBox( (ListButton) theButton, getPmmoSkillsBox( entry.getKey() ) );
+            }));
+        }
+
+        return box;
+    }
+
+    private static Box getPmmoSkillsBox( UUID uuid )
+    {
+        Box box = new Box( "skills" );
+
+        Map<String, Double> xpMap = XP.getOfflineXpMap( uuid );
+        for( Map.Entry<String, Double> skill : xpMap.entrySet() )
+        {
+            ListButton button = new ListButton( box ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.levelAtXpDecimal( skill.getValue() ) ), new TranslationTextComponent( "pmmo." + skill.getKey() ) ) ).onPress(theButton ->
+            {
+            });
+            button.textColor = Skill.getSkillColor( skill.getKey() );
+            box.addButton( button );
+        }
+
+        return box;
     }
 
     private static Box getMenuBox()
@@ -469,16 +523,16 @@ public class SAOScreen extends Screen
             if( !itemStack.isEmpty() )
             {
                 Item item = itemStack.getItem();
-                Multimap<Attribute, AttributeModifier> attributes = itemStack.getAttributeModifiers( EquipmentSlotType.MAINHAND );
+//                Multimap<Attribute, AttributeModifier> attributes = itemStack.getAttributeModifiers( EquipmentSlotType.MAINHAND );
                 Set<ToolType> toolTypes = itemStack.getToolTypes();
                 Collection<ItemGroup> itemGroups = item.getCreativeTabs();
-                if( attributes.size() > 0 )
-                {
-                    for( Map.Entry<Attribute, AttributeModifier> attribute : attributes.entries() )
-                    {
-                        System.out.println( attribute.getKey().getRegistryName() );
-                    }
-                }
+//                if( attributes.size() > 0 )
+//                {
+//                    for( Map.Entry<Attribute, AttributeModifier> attribute : attributes.entries() )
+//                    {
+//                        System.out.println( attribute.getKey().getRegistryName() );
+//                    }
+//                }
                 int slot = inv.selected;
                 switch( type )
                 {
@@ -555,7 +609,7 @@ public class SAOScreen extends Screen
                     generateSwapSlotButtons( box, type );
                 });
                 if( invIndex == finalSlot )
-                    boxButton.color = SaoConfig.buttonActiveColor;
+                    boxButton.setAsActive();
                 box.addButton( boxButton );
                 box.buttons = Lists.reverse( box.buttons );
             }
@@ -624,7 +678,7 @@ public class SAOScreen extends Screen
                         generateEquipButtons( box, slot );
                     });
                     if( invIndex >= 36 && invIndex <= 40 )
-                        boxButton.color = SaoConfig.buttonActiveColor;
+                        boxButton.setAsActive();
                     box.addButton( boxButton );
                     box.buttons = Lists.reverse( box.buttons );
                 }
