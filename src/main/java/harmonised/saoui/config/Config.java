@@ -1,4 +1,4 @@
-package harmonised.saoui.config;
+package harmonised.annotfig.config;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,15 +8,18 @@ import java.lang.annotation.Target;
 @Target( ElementType.TYPE )
 public @interface Config
 {
-    String modid();
-    String category() default "general";
-    Dist side() default Dist.COMMON;
-
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
     @interface Comment
     {
         String value();
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    @interface Type
+    {
+        ConfigType value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -49,10 +52,10 @@ public @interface Config
         String value() default "General";
     }
 
-    enum Dist
+    enum ConfigType
     {
         CLIENT,
-        SERVER,
+//        SERVER,
         COMMON
     }
 }
