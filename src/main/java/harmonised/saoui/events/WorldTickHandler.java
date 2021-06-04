@@ -8,6 +8,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.potion.Effect;
+import net.minecraft.potion.Effects;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
@@ -33,6 +35,7 @@ public class WorldTickHandler
             if( System.currentTimeMillis() - lastSyncs.get( dimResLoc ) > 1000 )
             {
                 Map<ServerPlayerEntity, Set<Integer>> dimVictimMap = new HashMap<>();
+                Set<Integer> invisibilityEffectEntities = new HashSet<>();
                 for( Int2ObjectMap.Entry<Entity> entry : world.entitiesById.int2ObjectEntrySet() )
                 {
                     Entity entity = entry.getValue();
@@ -47,12 +50,19 @@ public class WorldTickHandler
                                 dimVictimMap.put( player, new HashSet<>() );
                             dimVictimMap.get( player ).add( mob.getId() );
                         }
+                        Set<Effect> effects = mob.getActiveEffectsMap().keySet();
+                        if( effects.contains(Effects.INVISIBILITY ) )
+                            invisibilityEffectEntities.add( mob.getId() );
                     }
                 }
                 for( ServerPlayerEntity player : dimVictimMap.keySet() )
                 {
                     if( dimResLoc.equals( Util.getDimensionResLoc( player.getLevel() ) ) )
-                        NetworkHandler.sendToPlayer( new MessageIntArray( dimVictimMap.get( player ) ), player );
+                        NetworkHandler.sendToPlayer( new MessageIntArray( 0, dimVictimMap.get( player ) ), player );
+                }
+                for( ServerPlayerEntity player : world.players() )
+                {
+                    NetworkHandler.sendToPlayer( new MessageIntArray( 1, invisibilityEffectEntities ), player );
                 }
                 lastSyncs.put( dimResLoc, System.currentTimeMillis() );
             }

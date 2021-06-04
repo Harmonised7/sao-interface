@@ -58,7 +58,7 @@ public class Box extends Widget
     @Override
     public int getWidth()
     {
-        return getButtonWidth();
+        return buttons.size() > 0 ? getButtonWidth() : emptyButton.getWidth();
     }
 
     @Override
@@ -66,11 +66,12 @@ public class Box extends Widget
     {
         if( buttons.size() > 0 )
         {
-            int buttonCount = buttons.size();
-            int midButton = Math.min( maxDisplayButtons/2, buttonCount/2 );
-            boolean oddCount = midButton%2 == 1;
+            int buttonCount = Math.min( maxDisplayButtons, buttons.size() );
+            int midButton = buttonCount/2;
+            boolean isEven = buttonCount%2 == 0;
             int fadeInterval = 80;
             Renderer.drawCenteredString( stack, Minecraft.getInstance().font, new StringTextComponent( "" + name ), x + getWidth()/2f, y - 10, 0xffffff );
+            int fadeStep;
             for( int i = 0; i < buttonCount; i++ )
             {
                 int buttonIndex = (i + scrollPosGoal )%buttonCount;
@@ -81,8 +82,11 @@ public class Box extends Widget
                     break;
                 button.x = x;
                 button.y = y + (buttonHeight+buttonGap)*i;
-                if( midButton > fadeFrom )
-                    button.alpha = 255 - fadeInterval*Math.max( 0, Math.abs( i - midButton )-fadeFrom );
+                int thisMidButton = midButton;
+                if( isEven && i < midButton )
+                    thisMidButton--;
+                fadeStep = Math.abs( i - thisMidButton );
+                button.alpha = 255 - fadeInterval*fadeStep;
                 button.renderButton( stack, mouseX, mouseY, partialTicks );
                 Renderer.drawCenteredString( stack, Minecraft.getInstance().font, new StringTextComponent( "" + buttonIndex ), button.x, button.y, 0xffffff );
             }

@@ -11,6 +11,7 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -88,14 +89,19 @@ public class ListButton extends Button
         int backgroundColor = color;
         if( locked )
             backgroundColor = lockedColor;
-        else if( isHovered() )
-            backgroundColor = activeColor;
         else if( isActive() )
+            backgroundColor = activeColor;
+        else if( isHovered() )
             backgroundColor = hoverColor;
-        else if( itemStack != null && itemStack.isDamageableItem() && itemStack.isDamaged() )
+        else if( itemStack != null )
         {
-            int damageIn8Bit = (int) Util.map( itemStack.getDamageValue(), 0, itemStack.getMaxDamage(), 200, 0 );
-            backgroundColor = damageIn8Bit | damageIn8Bit << 8 | 255 << 16;
+            if( mc.player.inventory.getSelected().equals( itemStack ) )
+                backgroundColor = activeColor;
+            else if( itemStack.isDamageableItem() && itemStack.isDamaged() )
+            {
+                int damageIn8Bit = (int) Util.map( itemStack.getDamageValue(), 0, itemStack.getMaxDamage(), 200, 0 );
+                backgroundColor = damageIn8Bit | damageIn8Bit << 8 | 255 << 16;
+            }
         }
 
         Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeight(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, backgroundColor, alpha  );

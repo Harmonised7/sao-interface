@@ -333,7 +333,7 @@ public class SAOScreen extends Screen
             ClientHandler.disconnect();
         });
 
-        if( Math.random() >= 0.3 )
+        if( Math.random() <= 0.01 )
             logoutButton.lock();
 
         box.addButton( logoutButton );
@@ -364,22 +364,22 @@ public class SAOScreen extends Screen
 
         box.addButton( new ListButton( box ).setItem( Items.DIAMOND_SWORD, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".swords" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.DIAMOND_AXE, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".axes" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.BOW, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".bows" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.CROSSBOW, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".crossbows" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         return box;
@@ -396,27 +396,27 @@ public class SAOScreen extends Screen
 
         box.addButton( new ListButton( box ).setItem( Items.FLINT_AND_STEEL, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".items" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.STONE_BRICKS, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".blocks" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.GOLDEN_CARROT, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".food" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.REDSTONE_TORCH, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".redstone" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.POTION, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".potions" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         return box;
@@ -428,22 +428,22 @@ public class SAOScreen extends Screen
 
         box.addButton( new ListButton( box ).setItem( Items.GOLDEN_PICKAXE, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".pickaxes" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.GOLDEN_AXE, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".axes" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.GOLDEN_SHOVEL, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".shovels" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.GOLDEN_HOE, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".hoes" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         return box;
@@ -584,7 +584,7 @@ public class SAOScreen extends Screen
         }));
         box.addButton( new ListButton( box ).setItem( Items.SHIELD, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".shields" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring(4) ) );
+            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         return box;

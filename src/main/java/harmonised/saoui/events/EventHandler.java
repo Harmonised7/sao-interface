@@ -1,6 +1,6 @@
 package harmonised.saoui.events;
 
-import harmonised.saoui.config.ConfigProcessor;
+import harmonised.saoui.config.Configs;
 import harmonised.saoui.config.SaoConfig;
 import harmonised.saoui.util.Reference;
 import net.minecraft.entity.LivingEntity;
@@ -35,7 +35,7 @@ public class EventHandler
     {
         if( event.getEntityLiving() instanceof PlayerEntity )
         {
-            ConfigProcessor.readConfig( SaoConfig.class );
+//            Configs.parseConfig( Reference.MOD_ID );
 //            ConfigProcessor.saveConfig( SaoConfig.class );
         }
     }

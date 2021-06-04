@@ -10,10 +10,12 @@ import java.util.function.Supplier;
 
 public class MessageIntArray
 {
+    int type;
     Set<Integer> items;
 
-    public MessageIntArray( Set<Integer> items )
+    public MessageIntArray( int type, Set<Integer> items )
     {
+        this.type = type;
         this.items = new HashSet<>( items );
     }
 
@@ -26,6 +28,7 @@ public class MessageIntArray
     {
         MessageIntArray packet = new MessageIntArray();
 
+        packet.type = buf.readInt();
         int length = buf.readInt();
         for( int i = 0; i < length; i++ )
         {
@@ -37,6 +40,7 @@ public class MessageIntArray
 
     public static void encode(MessageIntArray packet, PacketBuffer buf )
     {
+        buf.writeInt( packet.type );
         buf.writeInt( packet.items.size() );
         for( int item : packet.items )
         {
@@ -48,7 +52,16 @@ public class MessageIntArray
     {
         ctx.get().enqueueWork(() ->
         {
-            Renderer.attackers = packet.items;
+            switch( packet.type )
+            {
+                case 0:
+                    Renderer.attackers = packet.items;
+                    break;
+
+                case 1:
+                    Renderer.invisibles = packet.items;
+                    break;
+            }
         });
         ctx.get().setPacketHandled( true );
     }

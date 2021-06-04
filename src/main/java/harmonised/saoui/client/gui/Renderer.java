@@ -16,11 +16,15 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.monster.SkeletonEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Food;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.Effect;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -59,6 +63,7 @@ public class Renderer
     private static int indicatorWidth = 128;
     private static int indicatorHeight = 256;
     public static Set<Integer> attackers = new HashSet<>();
+    public static Set<Integer> invisibles = new HashSet<>();
 
     @SubscribeEvent
     public void handleRender( RenderWorldLastEvent event )
@@ -70,7 +75,7 @@ public class Renderer
         BlockPos originBlockPos = mc.gameRenderer.getMainCamera().getBlockPosition();
         MatrixStack stack = event.getMatrixStack();
         stack.pushPose();
-        IRenderTypeBuffer.Impl buffer = mc.renderBuffers().bufferSource();
+//        IRenderTypeBuffer.Impl buffer = mc.renderBuffers().bufferSource();
         RenderSystem.enableBlend();
         //Align to world
         stack.translate( -cameraCenter.get( Direction.Axis.X ) + 0.5, -cameraCenter.get( Direction.Axis.Y ) + 0.5, -cameraCenter.get( Direction.Axis.Z ) + 0.5 );
@@ -78,10 +83,14 @@ public class Renderer
 
         for( LivingEntity livingEntity : world.getEntitiesOfClass( LivingEntity.class, new AxisAlignedBB( originBlockPos.above( renderDistance ).north( renderDistance ).east( renderDistance ), originBlockPos.below( renderDistance ).south( renderDistance ).west( renderDistance ) ) ) )
         {
+            if( invisibles.contains( livingEntity.getId() ) )
+                continue;
             stack.pushPose();
             Vector3d livingEntityEyePos = livingEntity.getEyePosition( partialTicks );
             stack.translate( livingEntityEyePos.get( Direction.Axis.X ) - 0.5, -livingEntityEyePos.get( Direction.Axis.Y ) + 0.5, -livingEntityEyePos.get( Direction.Axis.Z ) + 0.5 );
 
+            RenderSystem.enableBlend();
+            RenderSystem.enableDepthTest();
             drawHpBar( stack, livingEntity, partialTicks );
             drawNPCIndicator( stack, livingEntity );
 
@@ -89,8 +98,7 @@ public class Renderer
         }
 
         stack.popPose();
-        RenderSystem.disableDepthTest();
-        buffer.endBatch();
+//        buffer.endBatch();
     }
 
     public static void drawHpBar( MatrixStack stack, LivingEntity livingEntity, float partialTicks )
@@ -105,8 +113,10 @@ public class Renderer
             hpBar.update( partialTicks );
 
         boolean isPlayer = livingEntity == player;
-//            if( isPlayer )
-//                return;
+        if( isPlayer )
+        {
+//            return;
+        }
 
         float scale;
         if( isPlayer )
@@ -148,19 +158,14 @@ public class Renderer
 //                drawCurvedText( stack, livingEntityName, textPos, textScale, offset, degOffset, isPlayer );
                 drawCurvedText( stack, livingEntityName, nameTextPos, nameTextScale, degOffset + livingEntityWidth, isPlayer );
 
+                if( player.isCreative() )
+                    return;
+
                 float xpTextScale = 100 / livingEntityWidth / 0.3f;
                 Vector3f levelTextPos = new Vector3f( -w/2f, -h/2f - 0.04f, offset+0.02f );
 
                 drawCurvedText( stack, (int) ( player.getXpNeededForNextLevel() * player.experienceProgress ) + "/" + player.getXpNeededForNextLevel() + " LV: " + player.experienceLevel, levelTextPos, xpTextScale, degOffset + 17, isPlayer );
             }
-            {
-                stack.pushPose();
-
-                stack.popPose();
-            }
-
-            RenderSystem.enableBlend();
-            RenderSystem.enableDepthTest();
         }
 
         mc.getTextureManager().bind( Icons.HP_BAR );

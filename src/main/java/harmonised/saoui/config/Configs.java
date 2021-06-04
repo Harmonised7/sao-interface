@@ -1,4 +1,4 @@
-package harmonised.annotfig.config;
+package harmonised.saoui.config;
 
 import java.util.HashMap;
 
@@ -9,6 +9,11 @@ public class Configs
     public static void register( String configKey, Class configClass )
     {
         configs.put( configKey, new ConfigEntry( configKey, configClass ) );
+    }
+
+    public static ConfigEntry getConfig( String configKey )
+    {
+        return configs.get( configKey );
     }
 
     public static boolean parseConfig( String configKey )

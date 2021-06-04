@@ -17,6 +17,7 @@ public class NetworkHandler
         SAOMod.HANDLER.registerMessage( index++, MessageIntArray.class, MessageIntArray::encode, MessageIntArray::decode, MessageIntArray::handlePacket );
         SAOMod.HANDLER.registerMessage( index++, MessageSwapItems.class, MessageSwapItems::encode, MessageSwapItems::decode, MessageSwapItems::handlePacket );
         SAOMod.HANDLER.registerMessage( index++, MessageCraft.class, MessageCraft::encode, MessageCraft::decode, MessageCraft::handlePacket );
+        SAOMod.HANDLER.registerMessage( index++, MessageConfig.class, MessageConfig::encode, MessageConfig::decode, MessageConfig::handlePacket );
     }
 
     public static void sendToPlayer( MessageIntArray packet, ServerPlayerEntity player )
@@ -32,5 +33,10 @@ public class NetworkHandler
     public static void sendToServer( MessageCraft packet )
     {
         SAOMod.HANDLER.sendToServer( packet );
+    }
+
+    public static void sendToPlayer(MessageConfig packet, ServerPlayerEntity player )
+    {
+        SAOMod.HANDLER.sendTo( packet, player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT );
     }
 }

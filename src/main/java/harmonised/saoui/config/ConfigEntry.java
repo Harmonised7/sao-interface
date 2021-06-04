@@ -1,8 +1,6 @@
-package harmonised.annotfig.config;
+package harmonised.saoui.config;
 
-import harmonised.annotfig.util.Reference;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.World;
+import harmonised.saoui.util.Reference;
 import net.minecraftforge.fml.loading.FMLPaths;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -332,18 +330,38 @@ public class ConfigEntry
         return Math.max( rangeDouble.min(), Math.min( rangeDouble.max(), input ) );
     }
 
-    public Integer readOrGenerateIntConfig( Field field )
-    {
-        return (int) Math.floor( readOrGenerateDoubleConfig( field ) );
-    }
+//    public Integer readOrGenerateIntConfig( Field field )
+//    {
+//        return (int) Math.floor( readOrGenerateDoubleConfig( field ) );
+//    }
+//
+//    public Float readOrGenerateFloatConfig( Field field )
+//    {
+//        return (float) ( readOrGenerateDoubleConfig( field ) + 0f );
+//    }
+//
+//    public Double readOrGenerateDoubleConfig( Field field )
+//    {
+//        return 5D;
+//    }
 
-    public Float readOrGenerateFloatConfig( Field field )
+    public void setField( String key, double value )
     {
-        return (float) ( readOrGenerateDoubleConfig( field ) + 0f );
-    }
-
-    public Double readOrGenerateDoubleConfig( Field field )
-    {
-        return 5D;
+        Map<String, Field> fields = getFields();
+        Field field = getFields().get( key );
+        if( field == null )
+            LOGGER.error( "Error setting field \"" + key + "\": doesn't exist in " + cClass.getName() );
+        else
+        {
+            Type type = fields.get( key ).getGenericType();
+            if( type == int.class )
+                setInt( field, (int) value );
+            else if( type == float.class )
+                setFloat( field, (float) value );
+            else if( type == double.class )
+                setDouble( field, value );
+            else
+                LOGGER.error( "Error setting field \"" + key + "\": Invalid type: " + type );
+        }
     }
 }

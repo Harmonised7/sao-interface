@@ -9,13 +9,19 @@ import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.client.gui.screen.MultiplayerScreen;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.realms.RealmsBridgeScreen;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
@@ -54,6 +60,20 @@ public class ClientHandler
     {
         Minecraft.getInstance().particleEngine.register( SaoParticleTypes.TRIANGLE.get(), SaoParticle.Factory::new );
     }
+
+    @SubscribeEvent
+    public static void deathEvent( LivingDeathEvent event )
+    {
+        LivingEntity livingEntity = event.getEntityLiving();
+        World world = livingEntity.getCommandSenderWorld();
+        Vector3d pos = livingEntity.getPosition( 1f );
+        float width = livingEntity.getBbWidth();
+        float height = livingEntity.getBbHeight();
+        for( int i = 0; i < 1000; i++ )
+        {
+            world.addParticle( ParticleTypes.CRIMSON_SPORE, pos.x - width + Math.random()*width*2, pos.y + Math.random()*height, pos.z - width + Math.random()*width*2, 0, 0, 0 );
+        }
+    }
     
     public static void disconnect()
     {
@@ -75,5 +95,33 @@ public class ClientHandler
         }
         else
             mc.setScreen(new MultiplayerScreen(new MainMenuScreen()));
+    }
+
+    //ANNOTFIG
+    private static boolean isServerLocal = false;
+
+    @SubscribeEvent
+    public static void worldLoad( ClientPlayerNetworkEvent.LoggedInEvent event )
+    {
+        if( event.getPlayer().level.isClientSide() )
+            isServerLocal = Minecraft.getInstance().isLocalServer();
+    }
+
+    @SubscribeEvent
+    public static void renderUI( RenderGameOverlayEvent.Pre event )
+    {
+        switch( event.getType() )
+        {
+            case HEALTH:
+            case EXPERIENCE:
+            case FOOD:
+                event.setCanceled( true );
+                break;
+        }
+    }
+
+    public static boolean isServerLocal()
+    {
+        return isServerLocal;
     }
 }

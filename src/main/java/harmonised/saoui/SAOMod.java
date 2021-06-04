@@ -1,7 +1,7 @@
 package harmonised.saoui;
 
 import harmonised.saoui.client.ClientHandler;
-import harmonised.saoui.config.ConfigProcessor;
+import harmonised.saoui.config.Configs;
 import harmonised.saoui.config.SaoConfig;
 import harmonised.saoui.events.EventHandler;
 import harmonised.saoui.network.NetworkHandler;
@@ -21,6 +21,8 @@ import org.apache.logging.log4j.Logger;
 @Mod( Reference.MOD_ID )
 public class SAOMod
 {
+    private static boolean isLocal = false;
+
     private static final String PROTOCOL_VERSION = "1";
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -36,7 +38,7 @@ public class SAOMod
     {
         FMLJavaModLoadingContext.get().getModEventBus().addListener( this::modsLoading );
         FMLJavaModLoadingContext.get().getModEventBus().addListener( this::clientLoading );
-        ConfigProcessor.storeDefaultValues( SaoConfig.class );
+        Configs.register( Reference.MOD_ID, SaoConfig.class );
 //        SaoParticleTypes.init();
     }
 
@@ -49,5 +51,6 @@ public class SAOMod
     private void clientLoading( FMLClientSetupEvent event )
     {
         ClientHandler.init();
+        isLocal = true;
     }
 }
