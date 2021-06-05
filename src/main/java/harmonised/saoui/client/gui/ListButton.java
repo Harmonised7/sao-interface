@@ -16,6 +16,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
+import java.util.UUID;
+
 
 public class ListButton extends Button
 {
@@ -23,6 +25,7 @@ public class ListButton extends Button
     private FontRenderer font = mc.font;
     private boolean isCircle = false;
     public String regKey, buttonText;
+    public UUID uuid;
     public final Box box;
     public float x, y;
     public boolean displayTooltip = false, locked = false;
@@ -212,6 +215,12 @@ public class ListButton extends Button
     public ListButton unlock()
     {
         locked = false;
+        return this;
+    }
+
+    public ListButton setTextColor( int color )
+    {
+        textColor = color;
         return this;
     }
 

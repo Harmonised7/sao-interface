@@ -260,10 +260,15 @@ public class ConfigEntry
             output += "#Range\t" + rangeDouble.min() + "\tto\t" + rangeDouble.max() + "\n";
         }
 
-        Object fieldValue = isFieldCommon( field ) ? localCommonConfig.get( cKey ).get( field ) : readField( field );
+        Object fieldValue = isFieldCommon( field ) ? getLocalCommonFieldValue( field ) : readField( field );
         output += field.getName() + "=" + fieldValue + "\n";
 
         return output;
+    }
+
+    public Object getLocalCommonFieldValue( Field field )
+    {
+        return localCommonConfig.getOrDefault( cKey, new HashMap<>() ).getOrDefault( field, readField( field ) );
     }
 
     public Object getDefaultFieldValue( Field field )

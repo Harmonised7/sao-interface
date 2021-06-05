@@ -236,7 +236,7 @@ public class SAOScreen extends Screen
 
         CircleButton skillsButton = (CircleButton) new CircleButton( box ).setIcon( Icons.TWO_PEOPLE ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getPmmoHiscoreBox() );
+            openBox( (ListButton) theButton, getPmmoHiscoreBox( "totalLevel" ) );
         });
         if( !SAOMod.pmmoLoaded )
             skillsButton.lock();
@@ -338,24 +338,41 @@ public class SAOScreen extends Screen
         }
     }
 
-    private static Box getPmmoHiscoreBox()
+    private static Box getPmmoHiscoreBox( String skill )
     {
-        Box box = new Box( "hiscore" );
+        Box box = new Box( "hiscore." + skill );
 
         String playerName = mc.player.getDisplayName().getString();
-        box.addButton( new ListButton( box ).setMsg( mc.player.getDisplayName() ).onPress(theButton ->
-        {
-            openBox( (ListButton) theButton, getPmmoSkillsBox( mc.player.getUUID() ) );
-        }));
+
+        List<ListButton> playerButtons = new ArrayList<>();
 
         for( Map.Entry<UUID, String> entry : XP.playerNames.entrySet() )
         {
-            if( entry.getValue().equals( playerName ) )
-                continue;
-            box.addButton( new ListButton( box ).setMsg( new StringTextComponent( entry.getValue() ) ).onPress(theButton ->
+            double level;
+            if( skill.equals( "totalLevel" ) )
+                level = XP.getTotalLevelFromMap( XP.getOfflineXpMap( entry.getKey() ) );
+            else
+                level = Skill.getLevelDecimal( skill, entry.getKey() );
+
+            ListButton button = new ListButton( box ).setTextColor( Skill.getSkillColor( skill ) ).setMsg( new StringTextComponent( entry.getValue() + " " + DP.dpSoft( level ) ) ).onPress( theButton ->
             {
                 openBox( (ListButton) theButton, getPmmoSkillsBox( entry.getKey() ) );
-            }));
+            });
+
+            if( entry.getValue().equals( playerName ) )
+                box.addButton( button );
+            else
+                playerButtons.add( button );
+        }
+
+        if( skill.equals( "totalLevel" ) )
+            playerButtons.sort( Comparator.comparingDouble( b -> XP.getTotalLevelFromMap( XP.getOfflineXpMap( ((ListButton) b).uuid ) ) ).reversed() );
+        else
+            playerButtons.sort( Comparator.comparingDouble( b -> XP.getOfflineXp( skill, ((ListButton) b).uuid ) ).reversed() );
+
+        for( ListButton button : playerButtons )
+        {
+            box.addButton( button );
         }
 
         return box;
@@ -363,15 +380,35 @@ public class SAOScreen extends Screen
 
     private static Box getPmmoSkillsBox( UUID uuid )
     {
-        Box box = new Box( "skills" );
+        Box box = new Box( "skills." + uuid.toString() );
 
         Map<String, Double> xpMap = XP.getOfflineXpMap( uuid );
+        List<ListButton> playerButtons = new ArrayList<>();
+
+        ListButton totalLevelButton = new ListButton( box ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.getTotalXpFromMap( xpMap ) ), new TranslationTextComponent( "pmmo.totalLevel" ) ) ).onPress(theButton ->
+        {
+            openBox( (ListButton) theButton, getPmmoHiscoreBox( "totalLevel" ) );
+        });
+        totalLevelButton.regKey = "totalLevel";
+        totalLevelButton.uuid = uuid;
+        box.addButton( totalLevelButton );
+
         for( Map.Entry<String, Double> skill : xpMap.entrySet() )
         {
             ListButton button = new ListButton( box ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.levelAtXpDecimal( skill.getValue() ) ), new TranslationTextComponent( "pmmo." + skill.getKey() ) ) ).onPress(theButton ->
             {
+                openBox( (ListButton) theButton, getPmmoHiscoreBox( skill.getKey() ) );
             });
             button.textColor = Skill.getSkillColor( skill.getKey() );
+            button.regKey = skill.getKey();
+            button.uuid = uuid;
+            playerButtons.add( button );
+        }
+
+        playerButtons.sort( Comparator.comparingDouble( b -> XP.getOfflineXp( ((ListButton) b).regKey, uuid ) ).reversed() );
+
+        for( ListButton button : playerButtons )
+        {
             box.addButton( button );
         }
 
