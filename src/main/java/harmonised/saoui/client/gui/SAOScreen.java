@@ -2,6 +2,7 @@ package harmonised.saoui.client.gui;
 
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.matrix.MatrixStack;
+import harmonised.pmmo.party.PartyPendingSystem;
 import harmonised.pmmo.skills.Skill;
 import harmonised.pmmo.util.DP;
 import harmonised.pmmo.util.XP;
@@ -26,6 +27,7 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.*;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.RecipeItemHelper;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -234,12 +236,22 @@ public class SAOScreen extends Screen
             openBox( (ListButton) theButton, getPlayerBox() );
         }));
 
-        CircleButton skillsButton = (CircleButton) new CircleButton( box ).setIcon( Icons.TWO_PEOPLE ).onPress(theButton ->
+        CircleButton partyButton = (CircleButton) new CircleButton( box ).setIcon( Icons.TWO_PEOPLE ).onPress(theButton ->
+        {
+            openBox( (ListButton) theButton, getPartyBox() );
+        });
+
+        CircleButton skillsButton = (CircleButton) new CircleButton( box ).setIcon( Icons.STATS ).onPress(theButton ->
         {
             openBox( (ListButton) theButton, getPmmoHiscoreBox( "totalLevel" ) );
         });
         if( !SAOMod.pmmoLoaded )
+        {
+            partyButton.lock();
             skillsButton.lock();
+        }
+
+        box.addButton( partyButton );
         box.addButton( skillsButton );
 
         box.addButton( new CircleButton( box ).setIcon( Icons.GEAR ).onPress( theButton ->
@@ -354,7 +366,7 @@ public class SAOScreen extends Screen
             else
                 level = Skill.getLevelDecimal( skill, entry.getKey() );
 
-            ListButton button = new ListButton( box ).setTextColor( Skill.getSkillColor( skill ) ).setMsg( new StringTextComponent( entry.getValue() + " " + DP.dpSoft( level ) ) ).onPress( theButton ->
+            ListButton button = new ListButton( box ).setIcon( Icons.ONE_PERSON ).setTextColor( Skill.getSkillColor( skill ) ).setMsg( new StringTextComponent( entry.getValue() + " " + DP.dpSoft( level ) ) ).onPress( theButton ->
             {
                 openBox( (ListButton) theButton, getPmmoSkillsBox( entry.getKey() ) );
             });
@@ -378,6 +390,45 @@ public class SAOScreen extends Screen
         return box;
     }
 
+    private static Box getPartyBox()
+    {
+        Box box = new Box( "party" );
+
+        CompoundNBT partyData = PartyPendingSystem.offlineData;
+
+        if( partyData.size() > 0 )
+        {
+            box.addButton( new ListButton( box ).setIcon( Icons.TWO_PEOPLE ).setMsg( new TranslationTextComponent( "saoui.members" ) ).onPress( theButton ->
+            {
+                System.out.println( "List Party Members" );
+            }));
+
+            box.addButton( new ListButton( box ).setIcon( Icons.MINUS ).setMsg( new TranslationTextComponent( "saoui.leave" ) ).onPress( theButton ->
+            {
+                System.out.println( "Leave Party" );
+            }));
+        }
+        else
+        {
+            box.addButton( new ListButton( box ).setIcon( Icons.PLUS ).setMsg( new TranslationTextComponent( "saoui.create" ) ).onPress( theButton ->
+            {
+                System.out.println( "Create Party" );
+            }));
+
+            box.addButton( new ListButton( box ).setIcon( Icons.CHECKMARK ).setMsg( new TranslationTextComponent( "saoui.accept" ) ).onPress( theButton ->
+            {
+                System.out.println( "Accept Party" );
+            }));
+
+            box.addButton( new ListButton( box ).setIcon( Icons.X ).setMsg( new TranslationTextComponent( "saoui.decline" ) ).onPress( theButton ->
+            {
+                System.out.println( "Decline Party" );
+            }));
+        }
+
+        return box;
+    }
+
     private static Box getPmmoSkillsBox( UUID uuid )
     {
         Box box = new Box( "skills." + uuid.toString() );
@@ -385,7 +436,7 @@ public class SAOScreen extends Screen
         Map<String, Double> xpMap = XP.getOfflineXpMap( uuid );
         List<ListButton> playerButtons = new ArrayList<>();
 
-        ListButton totalLevelButton = new ListButton( box ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.getTotalXpFromMap( xpMap ) ), new TranslationTextComponent( "pmmo.totalLevel" ) ) ).onPress(theButton ->
+        ListButton totalLevelButton = new ListButton( box ).setIcon( Icons.STATS ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.getTotalXpFromMap( xpMap ) ), new TranslationTextComponent( "pmmo.totalLevel" ) ) ).onPress(theButton ->
         {
             openBox( (ListButton) theButton, getPmmoHiscoreBox( "totalLevel" ) );
         });
@@ -395,7 +446,7 @@ public class SAOScreen extends Screen
 
         for( Map.Entry<String, Double> skill : xpMap.entrySet() )
         {
-            ListButton button = new ListButton( box ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.levelAtXpDecimal( skill.getValue() ) ), new TranslationTextComponent( "pmmo." + skill.getKey() ) ) ).onPress(theButton ->
+            ListButton button = new ListButton( box ).setIcon( Icons.STATS ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.levelAtXpDecimal( skill.getValue() ) ), new TranslationTextComponent( "pmmo." + skill.getKey() ) ) ).onPress(theButton ->
             {
                 openBox( (ListButton) theButton, getPmmoHiscoreBox( skill.getKey() ) );
             });

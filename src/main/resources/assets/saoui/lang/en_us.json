@@ -27,5 +27,11 @@
   "saoui.redstone": "Redstone",
   "saoui.all": "All",
   "saoui.equipment": "Equipment",
-  "saoui.miscellaneous": "Miscellaneous"
+  "saoui.miscellaneous": "Miscellaneous",
+  "saoui.accept": "Accept",
+  "saoui.decline": "Decline",
+  "saoui.create": "Create",
+  "saoui.leave": "Leave",
+  "saoui.invite": "Invite",
+  "saoui.members": "Members"
 }
