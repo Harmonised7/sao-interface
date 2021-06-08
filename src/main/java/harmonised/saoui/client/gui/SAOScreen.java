@@ -2,6 +2,7 @@ package harmonised.saoui.client.gui;
 
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.matrix.MatrixStack;
+import harmonised.pmmo.config.Config;
 import harmonised.pmmo.party.PartyPendingSystem;
 import harmonised.pmmo.skills.Skill;
 import harmonised.pmmo.util.DP;
@@ -28,6 +29,8 @@ import net.minecraft.item.*;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.RecipeItemHelper;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.play.client.CChatMessagePacket;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -39,8 +42,12 @@ public class SAOScreen extends Screen
 {
     private static boolean init = false;
     public static final List<Box> boxes = new ArrayList<>();
+    public static Box extraBox = null, extraBoxParent = null;
+    public static final Box partyBox = new Box( "party" ), partyMembersBox = new Box( "partyMembers" );
     private static float pos = 0, goalPos;
+    private static CompoundNBT partyDataCopy = new CompoundNBT();
     private long lastRender = System.currentTimeMillis();
+    private long lastUpdate = System.currentTimeMillis();
 
     public static Minecraft mc = Minecraft.getInstance();
     MainWindow sr = mc.getWindow();
@@ -80,6 +87,21 @@ public class SAOScreen extends Screen
         boxes.add( getMainBox() );
     }
 
+    private static void closeBoxes( int layer )
+    {
+        int boxCount = boxes.size();
+        if( boxCount >= layer )
+        {
+            for( int i = boxCount-1; i >= layer; i-- )
+            {
+                if( i == 0 )
+                    break;
+                System.out.println( "Closing box " + i );
+                boxes.remove( i );
+            }
+        }
+    }
+
     private static void openBox( ListButton button, Box box )
     {
         int layer = button.box.getPos()+1;
@@ -97,25 +119,34 @@ public class SAOScreen extends Screen
             }
         }
         //Close boxes if layer is too far, never close main box
-        if( boxCount >= layer )
-        {
-            for( int i = boxCount-1; i >= layer; i-- )
-            {
-                if( i == 0 )
-                    break;
-                System.out.println( "Closing box " + i );
-                boxes.remove( i );
-            }
-        }
+        closeBoxes( button.box.getPos()+1 );
 
         System.out.println( "Opening box " + boxes.size() );
         boxes.add( box );
 
+        if( button.extraBox != null )
+        {
+            extraBox = button.extraBox;
+            extraBoxParent = box;
+        }
+
         button.setAsActive();
+    }
+
+    public void updateLiveInfo()
+    {
+        if( SAOMod.pmmoLoaded )
+        {
+            updatePartyBox();
+            updatePartyMembersBox();
+        }
     }
 
     public void updatePositions( boolean force )
     {
+        if( extraBoxParent == null || !boxes.contains( extraBoxParent ) )
+            extraBox = null;
+
         int middleX = Renderer.getScaledWidth()/2;
         int middleY = Renderer.getScaledHeight()/2;
 
@@ -147,16 +178,29 @@ public class SAOScreen extends Screen
             box.x -= pos;
         }
 
+        if( extraBox != null )
+        {
+            extraBox.x = (float) xOffset + middleX - pos - extraBox.getWidth() - boxesGap;
+            extraBox.y = (float) yOffset + extraBox.getHeight()/2f;
+        }
+
         lastRender = System.currentTimeMillis();
     }
 
     @Override
     public void render( MatrixStack stack, int mouseX, int mouseY, float partialTicks )
     {
+        if( System.currentTimeMillis() - lastUpdate > 500 )
+        {
+            updateLiveInfo();
+            lastUpdate = System.currentTimeMillis();
+        }
+
         updatePositions( false );
+//        if( extraBox != null )
+//            extraBox.render( stack, mouseX, mouseY, partialTicks );
         for( Box box : boxes )
         {
-
             box.render( stack, mouseX, mouseY, partialTicks );
         }
         for( Box box : boxes )
@@ -230,34 +274,33 @@ public class SAOScreen extends Screen
     {
         Box box = new Box( "main" );
 
-        box.addButton( new CircleButton( box ).setIcon( Icons.ONE_PERSON ).onPress(theButton ->
+        box.addButton( new CircleButton( box ).setIcon( Icons.ONE_PERSON ).setExtraBox( getPlayerInfoBox() ).onPress(theButton ->
         {
 
             openBox( (ListButton) theButton, getPlayerBox() );
         }));
 
-        CircleButton partyButton = (CircleButton) new CircleButton( box ).setIcon( Icons.TWO_PEOPLE ).onPress(theButton ->
+        box.addButton( new CircleButton( box ).setLock( !SAOMod.pmmoLoaded ).setIcon( Icons.TWO_PEOPLE ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getPartyBox() );
-        });
+            openBox( (ListButton) theButton, updatePartyBox() );
+        }));
 
-        CircleButton skillsButton = (CircleButton) new CircleButton( box ).setIcon( Icons.STATS ).onPress(theButton ->
+        box.addButton( new CircleButton( box ).setLock( !SAOMod.pmmoLoaded ).setIcon( Icons.STATS ).onPress(theButton ->
         {
             openBox( (ListButton) theButton, getPmmoHiscoreBox( "totalLevel" ) );
-        });
-        if( !SAOMod.pmmoLoaded )
-        {
-            partyButton.lock();
-            skillsButton.lock();
-        }
-
-        box.addButton( partyButton );
-        box.addButton( skillsButton );
+        }));
 
         box.addButton( new CircleButton( box ).setIcon( Icons.GEAR ).onPress( theButton ->
         {
             openBox( (ListButton) theButton, getMenuBox() );
         }));
+
+        return box;
+    }
+
+    private static Box getPlayerInfoBox()
+    {
+        Box box = new PlayerInfoBox( "playerInfo" );
 
         return box;
     }
@@ -390,43 +433,106 @@ public class SAOScreen extends Screen
         return box;
     }
 
-    private static Box getPartyBox()
+    private static boolean inParty()
     {
-        Box box = new Box( "party" );
+        return PartyPendingSystem.offlineData.size() > 0;
+    }
 
-        CompoundNBT partyData = PartyPendingSystem.offlineData;
+    private static Box updatePartyBox()
+    {
+        partyBox.clearButtons();
 
-        if( partyData.size() > 0 )
+        generatePartyButtons( partyBox, inParty() );
+        if( !inParty() && boxes.contains( partyMembersBox ) )
+            closeBoxes( partyMembersBox.getPos() );
+
+        return partyBox;
+    }
+
+    private static Box updatePartyMembersBox()
+    {
+        partyMembersBox.clearButtons();
+        double reqDistance = Config.getConfig( "partyRange" );
+        if( reqDistance == -1 )
+            reqDistance = Config.forgeConfig.partyRange.get();
+
+        for( String playerName : PartyPendingSystem.offlineData.getAllKeys() )
         {
-            box.addButton( new ListButton( box ).setIcon( Icons.TWO_PEOPLE ).setMsg( new TranslationTextComponent( "saoui.members" ) ).onPress( theButton ->
+            if( playerName.equals( mc.player.getDisplayName().getString() ) )
             {
-                System.out.println( "List Party Members" );
+                partyMembersBox.addButton( new ListButton( partyMembersBox ).setTextColor( 0xff00ff ).setIcon( Icons.ONE_PERSON ).setMsg( new TranslationTextComponent( "saoui.you" ) ).onPress(theButton ->
+                {
+                    System.out.println( "Clicked " + playerName );
+                }));
+            }
+            else
+            {
+                CompoundNBT playerData = PartyPendingSystem.offlineData.getCompound( playerName );
+                boolean online = playerData.contains( "dim" );
+                int textColor;
+                String distanceText = "";
+                if( online )
+                {
+                    double distance = Util.getDistance( mc.player.position(), new Vector3d( playerData.getDouble( "x" ), playerData.getDouble( "y" ), playerData.getDouble( "z" ) ) );
+                    textColor = distance < reqDistance ? 0x44ff44 : 0xff4444;
+                    distanceText = distance + "m";
+                }
+                else
+                    textColor = 0x555555;
+                partyMembersBox.addButton( new ListButton( partyMembersBox ).setLock( !online ).setTextColor( textColor ).setIcon( Icons.ONE_PERSON ).setMsg( new StringTextComponent( playerName + distanceText ) ).onPress(theButton ->
+                {
+                    System.out.println( "Clicked " + playerName );
+                }));
+            }
+        }
+
+        return partyMembersBox;
+    }
+
+    private static void generatePartyButtons( Box box, boolean inParty )
+    {
+        box.clearButtons();
+
+        if( inParty )
+        {
+            TranslationTextComponent textComp;
+            if( PartyPendingSystem.offlineData.size() == 1 )
+                textComp = new TranslationTextComponent( "saoui.1Member" );
+            else
+                textComp = new TranslationTextComponent( "saoui.xMembers", PartyPendingSystem.offlineData.size() );
+            box.addButton( new ListButton( box ).setIcon( Icons.TWO_PEOPLE ).setMsg( textComp ).onPress( theButton ->
+            {
+                if( inParty() )
+                    openBox( (ListButton) theButton, updatePartyMembersBox() );
             }));
 
             box.addButton( new ListButton( box ).setIcon( Icons.MINUS ).setMsg( new TranslationTextComponent( "saoui.leave" ) ).onPress( theButton ->
             {
-                System.out.println( "Leave Party" );
+                mc.getConnection().send( new CChatMessagePacket( "/pmmo party leave" ) );
+                PartyPendingSystem.offlineData = new CompoundNBT();
+                generatePartyButtons( box, false );
             }));
         }
         else
         {
             box.addButton( new ListButton( box ).setIcon( Icons.PLUS ).setMsg( new TranslationTextComponent( "saoui.create" ) ).onPress( theButton ->
             {
-                System.out.println( "Create Party" );
+                mc.getConnection().send( new CChatMessagePacket( "/pmmo party create" ) );
+                generatePartyButtons( box, inParty() );
             }));
 
             box.addButton( new ListButton( box ).setIcon( Icons.CHECKMARK ).setMsg( new TranslationTextComponent( "saoui.accept" ) ).onPress( theButton ->
             {
-                System.out.println( "Accept Party" );
+                mc.getConnection().send( new CChatMessagePacket( "/pmmo party accept" ) );
+                generatePartyButtons( box, PartyPendingSystem.offlineData.size() > 0 );
             }));
 
             box.addButton( new ListButton( box ).setIcon( Icons.X ).setMsg( new TranslationTextComponent( "saoui.decline" ) ).onPress( theButton ->
             {
-                System.out.println( "Decline Party" );
+                mc.getConnection().send( new CChatMessagePacket( "/pmmo party decline" ) );
+                generatePartyButtons( box, inParty() );
             }));
         }
-
-        return box;
     }
 
     private static Box getPmmoSkillsBox( UUID uuid )
@@ -470,15 +576,10 @@ public class SAOScreen extends Screen
     {
         Box box = new Box( "menu" );
 
-        ListButton logoutButton = new ListButton( box ).setIcon( Icons.SWORD ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".logout" ) ).onPress( theButton ->
+        box.addButton( new ListButton( box ).setLock( Math.random() <= 0.01 ).setIcon( Icons.SWORD ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".logout" ) ).onPress( theButton ->
         {
             ClientHandler.disconnect();
-        });
-
-        if( Math.random() <= 0.01 )
-            logoutButton.lock();
-
-        box.addButton( logoutButton );
+        }));
 
         return box;
     }

@@ -15,7 +15,7 @@ public class SaoConfig
     @Config.Name( "Button Locked Color" )
     @Config.Category( "Gui Colors" )
     @Config.RangeInt( min=0, max=0xffffff )
-    public static int buttonLockedColor = 0x555555;
+    public static int buttonLockedColor = 0xaa5555;
 
     @Config.Name( "Button Hover Color" )
     @Config.Category( "Gui Colors" )

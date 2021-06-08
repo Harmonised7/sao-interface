@@ -8,6 +8,7 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 
 import java.util.*;
@@ -109,6 +110,16 @@ public class Util
     public static double getDistance( double x1, double y1, double x2, double y2 )
     {
         return Math.sqrt( Math.pow( x2 - x1, 2 ) + Math.pow( y2 - y1, 2 ) );
+    }
+
+    public static double getDistance( Vector3d pos1, Vector3d pos2 )
+    {
+        return Math.sqrt( Math.pow( pos2.x() - pos1.x(), 2 ) + Math.pow( pos2.y() - pos1.y(), 2 )+ Math.pow( pos2.z - pos1.z(), 2 ) );
+    }
+
+    public static double getDistance( double x1, double y1, double z1, double x2, double y2, double z2 )
+    {
+        return Math.sqrt( Math.pow( x2 - x1, 2 ) + Math.pow( y2 - y1, 2 )+ Math.pow( z2 - z1, 2 ) );
     }
 
     public static int getEquipmentSlotInvIndex( EquipmentSlotType type )

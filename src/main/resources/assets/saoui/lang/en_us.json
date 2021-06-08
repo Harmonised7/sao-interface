@@ -33,5 +33,8 @@
   "saoui.create": "Create",
   "saoui.leave": "Leave",
   "saoui.invite": "Invite",
-  "saoui.members": "Members"
+  "saoui.members": "Members",
+  "saoui.xMembers": "%1$s Members",
+  "saoui.1Member": "1 Member",
+  "saoui.you": "You"
 }

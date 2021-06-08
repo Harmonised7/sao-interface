@@ -24,6 +24,7 @@ public class Box extends Widget
     public final int buttonGap = 4;
     public int scrollPosGoal = 0;
     public float scrollPos = 0;
+    public int backgroundColor = 0xffffff00;
     private final int midX, midY;
     private final ListButton emptyButton;
     public ListButton activeButton = null;
@@ -39,8 +40,8 @@ public class Box extends Widget
     public Box( String name )
     {
         super( 0, 0, 0, 0, new TranslationTextComponent( "" ) );
-        this.width = Renderer.getScaledWidth();
-        this.height = Renderer.getScaledHeight();
+//        this.width = Renderer.getScaledWidth();
+//        this.height = Renderer.getScaledHeight();
         this.name = name;
         midX = Renderer.getScaledWidth()/2;
         midY = Renderer.getScaledHeight()/2;

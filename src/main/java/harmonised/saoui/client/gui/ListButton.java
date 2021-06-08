@@ -27,6 +27,7 @@ public class ListButton extends Button
     public String regKey, buttonText;
     public UUID uuid;
     public final Box box;
+    public Box extraBox = null;
     public float x, y;
     public boolean displayTooltip = false, locked = false;
     public int color = SaoConfig.buttonColor,
@@ -212,6 +213,12 @@ public class ListButton extends Button
         return this;
     }
 
+    public ListButton setLock( boolean state )
+    {
+        locked = state;
+        return this;
+    }
+
     public ListButton unlock()
     {
         locked = false;
@@ -221,6 +228,12 @@ public class ListButton extends Button
     public ListButton setTextColor( int color )
     {
         textColor = color;
+        return this;
+    }
+
+    public ListButton setExtraBox( Box extraBox )
+    {
+        this.extraBox = extraBox;
         return this;
     }
 
