@@ -1,6 +1,7 @@
 package harmonised.saoui.events;
 
 import harmonised.saoui.network.MessageIntArray;
+import harmonised.saoui.network.MessageNBT;
 import harmonised.saoui.network.NetworkHandler;
 import harmonised.saoui.util.Util;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -8,17 +9,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.potion.Effect;
-import net.minecraft.potion.Effects;
+import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.TickEvent;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class WorldTickHandler
 {
@@ -35,7 +31,7 @@ public class WorldTickHandler
             if( System.currentTimeMillis() - lastSyncs.get( dimResLoc ) > 1000 )
             {
                 Map<ServerPlayerEntity, Set<Integer>> dimVictimMap = new HashMap<>();
-                Set<Integer> invisibilityEffectEntities = new HashSet<>();
+                Map<Integer, List<EffectInstance>> effects = new HashMap<>();
                 for( Int2ObjectMap.Entry<Entity> entry : world.entitiesById.int2ObjectEntrySet() )
                 {
                     Entity entity = entry.getValue();
@@ -50,9 +46,7 @@ public class WorldTickHandler
                                 dimVictimMap.put( player, new HashSet<>() );
                             dimVictimMap.get( player ).add( mob.getId() );
                         }
-                        Set<Effect> effects = mob.getActiveEffectsMap().keySet();
-                        if( effects.contains(Effects.INVISIBILITY ) )
-                            invisibilityEffectEntities.add( mob.getId() );
+                        effects.put( mob.getId(), new ArrayList<>( mob.getActiveEffects() ) );
                     }
                 }
                 for( ServerPlayerEntity player : dimVictimMap.keySet() )
@@ -62,7 +56,7 @@ public class WorldTickHandler
                 }
                 for( ServerPlayerEntity player : world.players() )
                 {
-                    NetworkHandler.sendToPlayer( new MessageIntArray( 1, invisibilityEffectEntities ), player );
+                    NetworkHandler.sendToPlayer( new MessageNBT( 0, Util.entityEffectInstanceMapToNBT( effects ) ), player );
                 }
                 lastSyncs.put( dimResLoc, System.currentTimeMillis() );
             }

@@ -57,10 +57,6 @@ public class MessageIntArray
                 case 0:
                     Renderer.attackers = packet.items;
                     break;
-
-                case 1:
-                    Renderer.invisibles = packet.items;
-                    break;
             }
         });
         ctx.get().setPacketHandled( true );

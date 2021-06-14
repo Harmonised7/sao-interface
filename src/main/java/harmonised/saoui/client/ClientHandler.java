@@ -115,6 +115,7 @@ public class ClientHandler
             case HEALTH:
             case EXPERIENCE:
             case FOOD:
+            case POTION_ICONS:
                 event.setCanceled( true );
                 break;
         }

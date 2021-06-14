@@ -26,7 +26,7 @@ public class Icons
     public static final ResourceLocation PLUS               = getSAOResLoc( "textures/gui/icons/plus.png" );
     public static final ResourceLocation X                  = getSAOResLoc( "textures/gui/icons/x.png" );
     public static final ResourceLocation STATS              = getSAOResLoc( "textures/gui/icons/stats.png" );
-    public static final ResourceLocation DEBUFF_BASE        = getSAOResLoc( "textures/gui/icons/debuff_base.png" );
+    public static final ResourceLocation BUFF_BASE          = getSAOResLoc( "textures/gui/icons/buff_base.png" );
 
     public static ResourceLocation getSAOResLoc( String path )
     {

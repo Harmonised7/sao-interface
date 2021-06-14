@@ -62,7 +62,7 @@ public class HPBar
         }
 
         //Hp
-        float hpRatio = livingEntity.getHealth() / livingEntity.getMaxHealth();
+        float hpRatio = Math.min( 1, livingEntity.getHealth() / livingEntity.getMaxHealth() );
         float hpDiff = hpPos - hpRatio;
         float crucialMultiplier = 0;
         if( hpPos < hpRatio )

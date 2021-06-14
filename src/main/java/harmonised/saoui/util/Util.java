@@ -7,9 +7,12 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
 
@@ -235,5 +238,51 @@ public class Util
     public static double cap( double input, double min, double max )
     {
         return Math.max( min, Math.min( max, input ) );
+    }
+
+    public static CompoundNBT entityEffectInstanceMapToNBT( Map<Integer, List<EffectInstance>> effects )
+    {
+        CompoundNBT nbt = new CompoundNBT();
+
+        for( Map.Entry<Integer, List<EffectInstance>> entry : effects.entrySet() )
+        {
+            CompoundNBT effectsNBT = new CompoundNBT();
+            for( EffectInstance effect : entry.getValue() )
+            {
+                CompoundNBT effectNBT = new CompoundNBT();
+
+                effectNBT.putInt( "amp", effect.getAmplifier() );
+                effectNBT.putInt( "time", effect.getDuration() );
+
+                effectsNBT.put( effect.getEffect().getRegistryName().toString(), effectNBT );
+            }
+
+            nbt.put( "" + entry.getKey(), effectsNBT );
+        }
+
+        return nbt;
+    }
+
+    public static Map<Integer, List<EffectInstance>> nbtToEntityEffectInstanceMap( CompoundNBT nbt )
+    {
+        Map<Integer, List<EffectInstance>> effects = new HashMap<>();
+
+        for( String mobId : nbt.getAllKeys() )
+        {
+            List<EffectInstance> effectInstances = new ArrayList<>();
+
+            CompoundNBT effectInstancesNBT = nbt.getCompound( mobId );
+            for( String effectKey : effectInstancesNBT.getAllKeys() )
+            {
+                CompoundNBT effectInstanceNBT = effectInstancesNBT.getCompound( effectKey );
+                ResourceLocation effectResLoc = new ResourceLocation( effectKey );
+                if( ForgeRegistries.POTIONS.containsKey( effectResLoc ) )
+                    effectInstances.add( new EffectInstance( ForgeRegistries.POTIONS.getValue( effectResLoc ), effectInstanceNBT.getInt( "time" ), effectInstanceNBT.getInt( "amp" ) ) );
+            }
+
+            effects.put( Integer.parseInt( mobId ), effectInstances );
+        }
+
+        return effects;
     }
 }

@@ -9,14 +9,11 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.texture.AtlasTexture;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.renderer.texture.*;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.monster.SkeletonEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Food;
@@ -24,7 +21,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.Effects;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -45,6 +41,7 @@ import java.util.*;
 public class Renderer
 {
     public static final Map<LivingEntity, HPBar> hpBars = new HashMap<>();
+    public static Map<Integer, List<EffectInstance>> effects = new HashMap<>();
     private static final Minecraft mc = Minecraft.getInstance();
 
     private static int blitOffset = 0;
@@ -64,6 +61,9 @@ public class Renderer
     private static int indicatorHeight = 256;
     public static Set<Integer> attackers = new HashSet<>();
     public static Set<Integer> invisibles = new HashSet<>();
+
+    //Buff Indicator
+    private static int buffIndicatorSize = 128;
 
     @SubscribeEvent
     public void handleRender( RenderWorldLastEvent event )
@@ -103,6 +103,7 @@ public class Renderer
 
     public static void drawHpBar( MatrixStack stack, LivingEntity livingEntity, float partialTicks )
     {
+        stack.pushPose();
         PlayerEntity player = mc.player;
         float w, h;
 
@@ -133,17 +134,17 @@ public class Renderer
         stack.mulPose( Vector3f.XP.rotationDegrees( hpBar.getXRot() + (isPlayer ? playerPitch : 0) ) ); //Horizontal Rotation
         float maxHp = livingEntity.getMaxHealth();
         float currHp = livingEntity.getHealth();
-        float hpRatio = currHp / maxHp;
+        float hpRatio = Math.min( 1, currHp / maxHp );
         float hpBarHpRatio = hpBar.getHpPos();
 
         float polyDegRange = ( Math.max( 20, Math.min( 270, 60 * maxHp * 0.1f ) ) ) * scale;
         float degOffset = 180 - polyDegRange/2 - 30;
         float polyDegStep = polyDegRange / polyCount;
-
         float livingEntityWidth = livingEntity.getBbWidth();
         float offset = livingEntityWidth * 1.2f;
         w = (float) ( 2*offset*Math.tan( Math.toRadians( polyDegStep/2 ) ) );
         h = livingEntity.getBbHeight() * 0.1f * scale;
+        float buffDegs = (float) Math.atan( 256/offset ) * 2.5f;
 
         ITextComponent livingEntityNameComp = livingEntity.getName();
         String livingEntityName = livingEntityNameComp.getString();
@@ -164,7 +165,7 @@ public class Renderer
                 float xpTextScale = 100 / livingEntityWidth / 0.3f;
                 Vector3f levelTextPos = new Vector3f( -w/2f, -h/2f - 0.04f, offset+0.02f );
 
-                drawCurvedText( stack, (int) ( player.getXpNeededForNextLevel() * player.experienceProgress ) + "/" + player.getXpNeededForNextLevel() + " LV: " + player.experienceLevel, levelTextPos, xpTextScale, degOffset + 17, isPlayer );
+                drawCurvedText( stack, (int) ( player.getXpNeededForNextLevel() * player.experienceProgress ) + "/" + player.getXpNeededForNextLevel() + " LV: " + player.experienceLevel, levelTextPos, xpTextScale, degOffset + 17 + ( livingEntity.getMaxHealth() - 20 )*1, isPlayer );
             }
         }
 
@@ -249,6 +250,40 @@ public class Renderer
             }
         }
 
+        //Status effects
+        {
+            effects.put( player.getId(), new ArrayList<>( player.getActiveEffects() ) );
+            List<EffectInstance> entityEffects = effects.get( livingEntity.getId() );
+            if( entityEffects != null )
+            {
+                int i = 0;
+                for( EffectInstance effectInstance : entityEffects )
+                {
+                    int col = i % 10;
+                    int row = i / 10;
+
+                    mc.getTextureManager().bind( Icons.BUFF_BASE );
+
+                    stack.pushPose();
+                    stack.mulPose( Vector3f.YP.rotationDegrees( polyDegRange + degOffset + col*buffDegs ) );
+                    stack.translate( -w/2f, -h/2f - 0.105f, offset );
+                    mirrorBlitColor( stack, 0, 0.06f, 0, 0.06f, 0, buffIndicatorSize, buffIndicatorSize, 0, 0, buffIndicatorSize, buffIndicatorSize, 0xeeeeee, 255 );
+                    Effect effect = effectInstance.getEffect();
+                    PotionSpriteUploader potionspriteuploader = mc.getMobEffectTextures();
+                    TextureAtlasSprite texAtlasSprite = potionspriteuploader.get(effect);
+                    mc.getTextureManager().bind(texAtlasSprite.atlas().location());
+//                mirrorBlit( stack, -0.0125f, 0.0125f, 0, 0.025f, 0, 256, 256, 0, 0, 256, 256 );
+                    stack.translate( 0, 0, -0.001f );
+                    mirrorBlit( stack.last().pose(), 0.01f, 0.05f, 0.01f, 0.05f, 0, texAtlasSprite.getU0(), texAtlasSprite.getU1(), texAtlasSprite.getV0(), texAtlasSprite.getV1() );
+                    stack.translate( 0, 0, 0.002f );
+                    mirrorBlit( stack.last().pose(), 0.01f, 0.05f, 0.01f, 0.05f, 0, texAtlasSprite.getU0(), texAtlasSprite.getU1(), texAtlasSprite.getV0(), texAtlasSprite.getV1() );
+                    stack.popPose();
+
+                    i++;
+                }
+            }
+        }
+
         //Hunger
         if( isPlayer )
         {
@@ -320,6 +355,7 @@ public class Renderer
                 stack.popPose();
             }
         }
+        stack.popPose();
     }
 
     public static void drawNPCIndicator( MatrixStack stack, LivingEntity livingEntity )
