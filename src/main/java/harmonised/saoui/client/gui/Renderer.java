@@ -7,6 +7,7 @@ import harmonised.saoui.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.*;
@@ -26,6 +27,7 @@ import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.ITextComponent;
@@ -45,6 +47,7 @@ public class Renderer
     private static final Minecraft mc = Minecraft.getInstance();
 
     private static int blitOffset = 0;
+    private static float w, h, offset, scale, polyDegRange, degOffset, polyDegStep, livingEntityWidth;
 
     //HP Bar
     private static final int polyCount = 64;
@@ -63,11 +66,15 @@ public class Renderer
     public static Set<Integer> invisibles = new HashSet<>();
 
     //Buff Indicator
-    private static int buffIndicatorSize = 128;
+    private static int statusIndicatorSize = 128;
+    private static float statusIndicatorBaseSize = 1f;
+    private static float statusIndicatorIconSize = 0.9f;
+    private static float indicatorDegs;
 
     @SubscribeEvent
     public void handleRender( RenderWorldLastEvent event )
     {
+        statusIndicatorBaseSize = 1f;
         PlayerEntity player = mc.player;
         float partialTicks = event.getPartialTicks();
         World world = mc.level;
@@ -81,31 +88,39 @@ public class Renderer
         stack.translate( -cameraCenter.get( Direction.Axis.X ) + 0.5, -cameraCenter.get( Direction.Axis.Y ) + 0.5, -cameraCenter.get( Direction.Axis.Z ) + 0.5 );
         stack.mulPose(Vector3f.XP.rotationDegrees(180.0F));
 
+        drawSaoUi( stack, player, partialTicks );
+        int i = 0;
         for( LivingEntity livingEntity : world.getEntitiesOfClass( LivingEntity.class, new AxisAlignedBB( originBlockPos.above( renderDistance ).north( renderDistance ).east( renderDistance ), originBlockPos.below( renderDistance ).south( renderDistance ).west( renderDistance ) ) ) )
         {
-            if( invisibles.contains( livingEntity.getId() ) )
+            if( invisibles.contains( livingEntity.getId() ) || livingEntity == player )
                 continue;
-            stack.pushPose();
-            Vector3d livingEntityEyePos = livingEntity.getEyePosition( partialTicks );
-            stack.translate( livingEntityEyePos.get( Direction.Axis.X ) - 0.5, -livingEntityEyePos.get( Direction.Axis.Y ) + 0.5, -livingEntityEyePos.get( Direction.Axis.Z ) + 0.5 );
-
-            RenderSystem.enableBlend();
-            RenderSystem.enableDepthTest();
-            drawHpBar( stack, livingEntity, partialTicks );
-            drawNPCIndicator( stack, livingEntity );
-
-            stack.popPose();
+            drawSaoUi( stack, livingEntity, partialTicks );
+            if( i++ > 100 )
+                break;
         }
 
         stack.popPose();
 //        buffer.endBatch();
     }
 
+    public static void drawSaoUi( MatrixStack stack, LivingEntity livingEntity, float partialTicks )
+    {
+        stack.pushPose();
+        Vector3d livingEntityEyePos = livingEntity.getEyePosition( partialTicks );
+        stack.translate( livingEntityEyePos.get( Direction.Axis.X ) - 0.5, -livingEntityEyePos.get( Direction.Axis.Y ) + 0.5, -livingEntityEyePos.get( Direction.Axis.Z ) + 0.5 );
+
+        RenderSystem.enableBlend();
+        RenderSystem.enableDepthTest();
+        drawHpBar( stack, livingEntity, partialTicks );
+        drawNPCIndicator( stack, livingEntity );
+
+        stack.popPose();
+    }
+
     public static void drawHpBar( MatrixStack stack, LivingEntity livingEntity, float partialTicks )
     {
         stack.pushPose();
         PlayerEntity player = mc.player;
-        float w, h;
 
         if( !hpBars.containsKey( livingEntity ) || hpBars.get( livingEntity ).getLivingEntity() != livingEntity )
             hpBars.put( livingEntity, new HPBar( livingEntity ) );
@@ -119,7 +134,6 @@ public class Renderer
 //            return;
         }
 
-        float scale;
         if( isPlayer )
         {
 //            RenderSystem.disableDepthTest();
@@ -137,14 +151,14 @@ public class Renderer
         float hpRatio = Math.min( 1, currHp / maxHp );
         float hpBarHpRatio = hpBar.getHpPos();
 
-        float polyDegRange = ( Math.max( 20, Math.min( 270, 60 * maxHp * 0.1f ) ) ) * scale;
-        float degOffset = 180 - polyDegRange/2 - 30;
-        float polyDegStep = polyDegRange / polyCount;
-        float livingEntityWidth = livingEntity.getBbWidth();
-        float offset = livingEntityWidth * 1.2f;
+        polyDegRange      = ( Math.max( 20, Math.min( 270, 60 * maxHp * 0.1f ) ) ) * scale;
+        degOffset         = 180 - polyDegRange/2 - 30;
+        polyDegStep       = polyDegRange / polyCount;
+        livingEntityWidth = livingEntity.getBbWidth();
+        offset            = livingEntityWidth * 1.2f;
+        indicatorDegs = (float) Math.atan( 256/offset ) * 4f * statusIndicatorBaseSize;
         w = (float) ( 2*offset*Math.tan( Math.toRadians( polyDegStep/2 ) ) );
         h = livingEntity.getBbHeight() * 0.1f * scale;
-        float buffDegs = (float) Math.atan( 256/offset ) * 2.5f;
 
         ITextComponent livingEntityNameComp = livingEntity.getName();
         String livingEntityName = livingEntityNameComp.getString();
@@ -250,40 +264,6 @@ public class Renderer
             }
         }
 
-        //Status effects
-        {
-            effects.put( player.getId(), new ArrayList<>( player.getActiveEffects() ) );
-            List<EffectInstance> entityEffects = effects.get( livingEntity.getId() );
-            if( entityEffects != null )
-            {
-                int i = 0;
-                for( EffectInstance effectInstance : entityEffects )
-                {
-                    int col = i % 10;
-                    int row = i / 10;
-
-                    mc.getTextureManager().bind( Icons.BUFF_BASE );
-
-                    stack.pushPose();
-                    stack.mulPose( Vector3f.YP.rotationDegrees( polyDegRange + degOffset + col*buffDegs ) );
-                    stack.translate( -w/2f, -h/2f - 0.105f, offset );
-                    mirrorBlitColor( stack, 0, 0.06f, 0, 0.06f, 0, buffIndicatorSize, buffIndicatorSize, 0, 0, buffIndicatorSize, buffIndicatorSize, 0xeeeeee, 255 );
-                    Effect effect = effectInstance.getEffect();
-                    PotionSpriteUploader potionspriteuploader = mc.getMobEffectTextures();
-                    TextureAtlasSprite texAtlasSprite = potionspriteuploader.get(effect);
-                    mc.getTextureManager().bind(texAtlasSprite.atlas().location());
-//                mirrorBlit( stack, -0.0125f, 0.0125f, 0, 0.025f, 0, 256, 256, 0, 0, 256, 256 );
-                    stack.translate( 0, 0, -0.001f );
-                    mirrorBlit( stack.last().pose(), 0.01f, 0.05f, 0.01f, 0.05f, 0, texAtlasSprite.getU0(), texAtlasSprite.getU1(), texAtlasSprite.getV0(), texAtlasSprite.getV1() );
-                    stack.translate( 0, 0, 0.002f );
-                    mirrorBlit( stack.last().pose(), 0.01f, 0.05f, 0.01f, 0.05f, 0, texAtlasSprite.getU0(), texAtlasSprite.getU1(), texAtlasSprite.getV0(), texAtlasSprite.getV1() );
-                    stack.popPose();
-
-                    i++;
-                }
-            }
-        }
-
         //Hunger
         if( isPlayer )
         {
@@ -355,7 +335,107 @@ public class Renderer
                 stack.popPose();
             }
         }
+
+        //Status effects
+        {
+            effects.put( player.getId(), new ArrayList<>( player.getActiveEffects() ) );
+            List<EffectInstance> entityEffects = effects.get( livingEntity.getId() );
+            if( entityEffects != null )
+            {
+                drawEffectBase( stack, entityEffects );
+                drawEffectIcons( stack, entityEffects );
+                drawEffectTimers( stack, entityEffects );
+            }
+        }
+
         stack.popPose();
+    }
+
+    public static void drawEffectBase( MatrixStack stack, List<EffectInstance> entityEffects )
+    {
+        int i = 0;
+        float baseSize = statusIndicatorBaseSize*0.09f;
+        for( EffectInstance effectInstance : entityEffects )
+        {
+            int col = i % 10;
+            int row = i / 10;
+
+            mc.getTextureManager().bind( Icons.BUFF_BASE );
+
+            stack.pushPose();
+            stack.mulPose( Vector3f.YP.rotationDegrees( degOffset + polyDegRange + col* indicatorDegs) );
+            stack.translate( -w/2f, -h/2f - 0.11f, offset );
+            int color;
+            switch( effectInstance.getEffect().getCategory() )
+            {
+                case HARMFUL:
+                    color = 0xcc0000;
+                    break;
+
+                case BENEFICIAL:
+                    color = 0x00cc00;
+                    break;
+
+                case NEUTRAL:
+                default:
+                    color = 0xcccccc;
+                    break;
+            }
+            mirrorBlitColor( stack, 0, baseSize, 0, baseSize, 0, statusIndicatorSize, statusIndicatorSize, 0, 0, statusIndicatorSize, statusIndicatorSize, color, 255 );
+            stack.popPose();
+
+            i++;
+        }
+    }
+
+    public static void drawEffectIcons( MatrixStack stack, List<EffectInstance> entityEffects )
+    {
+        statusIndicatorIconSize = 0.8f;
+        float baseSize = statusIndicatorBaseSize*0.09f;
+        float iconSize = baseSize*statusIndicatorIconSize;
+        float xy1 = baseSize - iconSize;
+        int i = 0;
+        for( EffectInstance effectInstance : entityEffects )
+        {
+            int col = i % 10;
+            int row = i / 10;
+
+            stack.pushPose();
+            stack.mulPose( Vector3f.YP.rotationDegrees( degOffset + polyDegRange + col * indicatorDegs) );
+            Effect effect = effectInstance.getEffect();
+            PotionSpriteUploader potionspriteuploader = mc.getMobEffectTextures();
+            TextureAtlasSprite texAtlasSprite = potionspriteuploader.get( effect );
+            mc.getTextureManager().bind( texAtlasSprite.atlas().location() );
+            stack.translate( -w/2f, -h/2f - 0.11f, offset );
+            stack.translate( 0, 0, -0.001f );
+            mirrorBlit( stack.last().pose(), xy1, iconSize, xy1, iconSize, 0, texAtlasSprite.getU0(), texAtlasSprite.getU1(), texAtlasSprite.getV0(), texAtlasSprite.getV1() );
+            stack.translate( 0, 0, 0.002f );
+            mirrorBlit( stack.last().pose(), xy1, iconSize, xy1, iconSize, 0, texAtlasSprite.getU0(), texAtlasSprite.getU1(), texAtlasSprite.getV0(), texAtlasSprite.getV1() );
+            stack.popPose();
+
+            i++;
+        }
+    }
+
+    public static void drawEffectTimers( MatrixStack stack, List<EffectInstance> entityEffects )
+    {
+        int i = 0;
+        for( EffectInstance effectInstance : entityEffects )
+        {
+            int col = i % 10;
+            int row = i / 10;
+
+            stack.pushPose();
+            stack.mulPose( Vector3f.YP.rotationDegrees( degOffset + polyDegRange + col* indicatorDegs) );
+            stack.translate( -w/2f, -h/2f - 0.11f, offset );
+            stack.translate( 0, 0, -0.001f );
+//            mirrorBlit( stack.last().pose(), 0.01f, 0.05f, 0.01f, 0.05f, 0, texAtlasSprite.getU0(), texAtlasSprite.getU1(), texAtlasSprite.getV0(), texAtlasSprite.getV1() );
+            stack.translate( 0, 0, 0.002f );
+//            mirrorBlit( stack.last().pose(), 0.01f, 0.05f, 0.01f, 0.05f, 0, texAtlasSprite.getU0(), texAtlasSprite.getU1(), texAtlasSprite.getV0(), texAtlasSprite.getV1() );
+            stack.popPose();
+
+            i++;
+        }
     }
 
     public static void drawNPCIndicator( MatrixStack stack, LivingEntity livingEntity )
@@ -577,5 +657,47 @@ public class Renderer
         builder.vertex( matrix, x1, y1, z ).color(f1, f2, f3, f).endVertex();
         builder.vertex( matrix, x1, y2, z ).color(f5, f6, f7, f4).endVertex();
         builder.vertex( matrix, x2, y2, z ).color(f5, f6, f7, f4).endVertex();
+    }
+
+    public static void drawEntityOnScreen( MatrixStack stack, float posX, float posY, float scale, float mouseX, float mouseY, LivingEntity livingEntity )
+    {
+        float f = (float)Math.atan(mouseX / 40.0);
+        float f1 = (float)Math.atan(mouseY / 40.0);
+        stack.pushPose();
+        stack.translate( posX, posY, 1050.0F );
+        stack.scale(1.0F, 1.0F, -1.0F);
+        stack.translate(0.0D, 0.0D, 1000.0D);
+        stack.scale( scale, scale, scale );
+        Quaternion quaternion = Vector3f.ZP.rotationDegrees(180.0F);
+        Quaternion quaternion1 = Vector3f.XP.rotationDegrees(f1 * 20.0F);
+        quaternion.mul(quaternion1);
+        stack.mulPose(quaternion);
+        float f2 = livingEntity.yBodyRot;
+        float f3 = livingEntity.yRot;
+        float f4 = livingEntity.xRot;
+        float f5 = livingEntity.yHeadRotO;
+        float f6 = livingEntity.yHeadRot;
+        livingEntity.yBodyRot = 180.0F + f * 20.0F;
+        livingEntity.yRot = 180.0F + f * 40.0F;
+        livingEntity.xRot = -f1 * 20.0F;
+        livingEntity.yHeadRot = livingEntity.yRot;
+        livingEntity.yHeadRotO = livingEntity.yRot;
+        EntityRendererManager entityrenderermanager = Minecraft.getInstance().getEntityRenderDispatcher();
+        quaternion1.conj();
+        entityrenderermanager.overrideCameraOrientation(quaternion1);
+        entityrenderermanager.setRenderShadow(false);
+        IRenderTypeBuffer.Impl irendertypebuffer$impl = Minecraft.getInstance().renderBuffers().bufferSource();
+        RenderSystem.runAsFancy(() ->
+        {
+            entityrenderermanager.render(livingEntity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, stack, irendertypebuffer$impl, 15728880);
+        });
+        irendertypebuffer$impl.endBatch();
+        entityrenderermanager.setRenderShadow(true);
+        livingEntity.yBodyRot = f2;
+        livingEntity.yRot = f3;
+        livingEntity.xRot = f4;
+        livingEntity.yHeadRotO = f5;
+        livingEntity.yHeadRot = f6;
+        stack.popPose();
     }
 }

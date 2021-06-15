@@ -12,6 +12,7 @@ import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
@@ -284,5 +285,10 @@ public class Util
         }
 
         return effects;
+    }
+
+    public static boolean isProduction()
+    {
+        return FMLEnvironment.production;
     }
 }

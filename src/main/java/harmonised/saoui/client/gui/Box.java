@@ -29,6 +29,7 @@ public class Box extends Widget
     private final ListButton emptyButton;
     public ListButton activeButton = null;
     public final String name;
+    public boolean scrollLocked = false;
 
     //Box Arrow
     private static final int boxArrowWidth = 68;
@@ -148,7 +149,7 @@ public class Box extends Widget
     @Override
     public boolean mouseScrolled( double mouseX, double mouseY, double amount )
     {
-        if( mouseX > x && mouseX < x+getWidth() && mouseY > y && mouseY < y+getHeight() )
+        if( !scrollLocked && mouseX > x && mouseX < x+getWidth() && mouseY > y && mouseY < y+getHeight() )
         {
             if( amount > 0 )
                 scrollPosGoal--;
@@ -160,7 +161,7 @@ public class Box extends Widget
         return false;
     }
 
-    public void addButton(ListButton button )
+    public void addButton( ListButton button )
     {
         this.buttons.add( button );
         if( button.getWidth() > buttonWidth )
@@ -184,5 +185,17 @@ public class Box extends Widget
     public void setActiveButton( ListButton button )
     {
         activeButton = button;
+    }
+
+    public Box lockScroll()
+    {
+        scrollLocked = true;
+        return this;
+    }
+
+    public Box unlockScroll()
+    {
+        scrollLocked = false;
+        return this;
     }
 }

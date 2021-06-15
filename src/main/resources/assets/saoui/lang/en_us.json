@@ -6,6 +6,7 @@
   "saoui.crafting": "Crafting",
   "saoui.blocks": "Blocks",
   "saoui.logout": "Logout",
+  "saoui.settings": "Settings",
   "saoui.armor": "Armor",
   "saoui.weapons": "Weapons",
   "saoui.head": "Head",
@@ -36,5 +37,6 @@
   "saoui.members": "Members",
   "saoui.xMembers": "%1$s Members",
   "saoui.1Member": "1 Member",
-  "saoui.you": "You"
+  "saoui.you": "You",
+  "saoui.guiSettings": "GUI"
 }

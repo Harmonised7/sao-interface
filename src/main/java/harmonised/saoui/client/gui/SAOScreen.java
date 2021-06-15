@@ -197,8 +197,8 @@ public class SAOScreen extends Screen
         }
 
         updatePositions( false );
-//        if( extraBox != null )
-//            extraBox.render( stack, mouseX, mouseY, partialTicks );
+        if( extraBox != null && !Util.isProduction() )
+            extraBox.render( stack, mouseX, mouseY, partialTicks );
         for( Box box : boxes )
         {
             box.render( stack, mouseX, mouseY, partialTicks );
@@ -576,9 +576,42 @@ public class SAOScreen extends Screen
     {
         Box box = new Box( "menu" );
 
+        box.addButton( new ListButton( box ).setLock( Util.isProduction() ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".settings" ) ).onPress( theButton ->
+        {
+            openBox( (ListButton) theButton, getSettingsBox() );
+        }));
+
         box.addButton( new ListButton( box ).setLock( Math.random() <= 0.01 ).setIcon( Icons.SWORD ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".logout" ) ).onPress( theButton ->
         {
             ClientHandler.disconnect();
+        }));
+
+        return box;
+    }
+
+    private static Box getSettingsBox()
+    {
+        Box box = new Box( "settings" );
+
+        box.addButton( new ListButton( box ).setLock( Math.random() <= 0.01 ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".guiSettings" ) ).onPress( theButton ->
+        {
+            openBox( (ListButton) theButton, getGuiSettingsBox() );
+        }));
+
+//        box.addButton( new ListButton( box ).setLock( Math.random() <= 0.01 ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".guiSettings" ) ).onPress( theButton ->
+//        {
+//            openBox( (ListButton) theButton, getSettingsBox() );
+//        }));
+
+        return box;
+    }
+
+    private static Box getGuiSettingsBox()
+    {
+        Box box = new Box( "guiSettings" );
+
+        box.addButton( new ListButton( box ).setLock( Math.random() <= 0.01 ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".config." ) ).onPress( theButton ->
+        {
         }));
 
         return box;
