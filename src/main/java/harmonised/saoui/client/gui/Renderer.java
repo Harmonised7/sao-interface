@@ -65,16 +65,15 @@ public class Renderer
     public static Set<Integer> attackers = new HashSet<>();
     public static Set<Integer> invisibles = new HashSet<>();
 
-    //Buff Indicator
+    //Status Indicator
     private static int statusIndicatorSize = 128;
     private static float statusIndicatorBaseSize = 1f;
-    private static float statusIndicatorIconSize = 0.9f;
+    private static float statusIndicatorIconSize = 0.8f;
     private static float indicatorDegs;
 
     @SubscribeEvent
     public void handleRender( RenderWorldLastEvent event )
     {
-        statusIndicatorBaseSize = 1f;
         PlayerEntity player = mc.player;
         float partialTicks = event.getPartialTicks();
         World world = mc.level;
@@ -95,7 +94,7 @@ public class Renderer
             if( invisibles.contains( livingEntity.getId() ) || livingEntity == player )
                 continue;
             drawSaoUi( stack, livingEntity, partialTicks );
-            if( i++ > 100 )
+            if( i++ > 300 )
                 break;
         }
 
@@ -156,6 +155,7 @@ public class Renderer
         polyDegStep       = polyDegRange / polyCount;
         livingEntityWidth = livingEntity.getBbWidth();
         offset            = livingEntityWidth * 1.2f;
+        statusIndicatorBaseSize = 1;
         indicatorDegs = (float) Math.atan( 256/offset ) * 4f * statusIndicatorBaseSize;
         w = (float) ( 2*offset*Math.tan( Math.toRadians( polyDegStep/2 ) ) );
         h = livingEntity.getBbHeight() * 0.1f * scale;
@@ -363,8 +363,8 @@ public class Renderer
             mc.getTextureManager().bind( Icons.BUFF_BASE );
 
             stack.pushPose();
-            stack.mulPose( Vector3f.YP.rotationDegrees( degOffset + polyDegRange + col* indicatorDegs) );
-            stack.translate( -w/2f, -h/2f - 0.11f, offset );
+            stack.mulPose( Vector3f.YP.rotationDegrees( degOffset + polyDegRange + col * indicatorDegs - row*2 ) );
+            stack.translate( -w/2f, -h/2f - 0.11f + row*statusIndicatorBaseSize*0.08f, offset );
             int color;
             switch( effectInstance.getEffect().getCategory() )
             {
@@ -390,7 +390,6 @@ public class Renderer
 
     public static void drawEffectIcons( MatrixStack stack, List<EffectInstance> entityEffects )
     {
-        statusIndicatorIconSize = 0.8f;
         float baseSize = statusIndicatorBaseSize*0.09f;
         float iconSize = baseSize*statusIndicatorIconSize;
         float xy1 = baseSize - iconSize;
@@ -401,12 +400,12 @@ public class Renderer
             int row = i / 10;
 
             stack.pushPose();
-            stack.mulPose( Vector3f.YP.rotationDegrees( degOffset + polyDegRange + col * indicatorDegs) );
+            stack.mulPose( Vector3f.YP.rotationDegrees( degOffset + polyDegRange + col * indicatorDegs - row*2 ) );
             Effect effect = effectInstance.getEffect();
             PotionSpriteUploader potionspriteuploader = mc.getMobEffectTextures();
             TextureAtlasSprite texAtlasSprite = potionspriteuploader.get( effect );
             mc.getTextureManager().bind( texAtlasSprite.atlas().location() );
-            stack.translate( -w/2f, -h/2f - 0.11f, offset );
+            stack.translate( -w/2f, -h/2f - 0.11f + row*statusIndicatorBaseSize*0.08f, offset );
             stack.translate( 0, 0, -0.001f );
             mirrorBlit( stack.last().pose(), xy1, iconSize, xy1, iconSize, 0, texAtlasSprite.getU0(), texAtlasSprite.getU1(), texAtlasSprite.getV0(), texAtlasSprite.getV1() );
             stack.translate( 0, 0, 0.002f );
@@ -426,16 +425,20 @@ public class Renderer
             int row = i / 10;
 
             stack.pushPose();
-            stack.mulPose( Vector3f.YP.rotationDegrees( degOffset + polyDegRange + col* indicatorDegs) );
-            stack.translate( -w/2f, -h/2f - 0.11f, offset );
+            stack.mulPose( Vector3f.YP.rotationDegrees( degOffset + polyDegRange + ( col * indicatorDegs + indicatorDegs*0.4f ) - row*2 ) );
+            int color = i%2 == 0 ? 0xffffff : 0xcccccc;
+            stack.translate( -w/2f, -h/2f - 0.075f + (row+1)*statusIndicatorBaseSize*0.065f, offset + 0.01f );
             stack.translate( 0, 0, -0.001f );
-//            mirrorBlit( stack.last().pose(), 0.01f, 0.05f, 0.01f, 0.05f, 0, texAtlasSprite.getU0(), texAtlasSprite.getU1(), texAtlasSprite.getV0(), texAtlasSprite.getV1() );
-            stack.translate( 0, 0, 0.002f );
-//            mirrorBlit( stack.last().pose(), 0.01f, 0.05f, 0.01f, 0.05f, 0, texAtlasSprite.getU0(), texAtlasSprite.getU1(), texAtlasSprite.getV0(), texAtlasSprite.getV1() );
+            stack.scale( 1/400f, 1/400f, 1/400f );
+            Renderer.drawCenteredString( stack, mc.font, new StringTextComponent( "" + ( Util.toStamp( effectInstance.getDuration() / 20f ) ) ), 0, 0, color );
+//            stack.translate( 0, 0, 0.002f );
+//            stack.mulPose( Vector3f.YP.rotationDegrees( 90f ) );
+//            Renderer.drawCenteredString( stack, mc.font, new StringTextComponent( "" + ( Util.toStamp( effectInstance.getDuration() / 20f ) ) ), 0, 0, color );
             stack.popPose();
 
             i++;
         }
+        RenderSystem.enableBlend();
     }
 
     public static void drawNPCIndicator( MatrixStack stack, LivingEntity livingEntity )

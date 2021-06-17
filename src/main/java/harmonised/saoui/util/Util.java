@@ -291,4 +291,10 @@ public class Util
     {
         return FMLEnvironment.production;
     }
+
+    public static String toStamp( double input )
+    {
+        int seconds = (int) input % 60;
+        return (int) ( input / 60 ) + ":" + ( seconds > 9 ? "" : 0 ) + seconds;
+    }
 }
