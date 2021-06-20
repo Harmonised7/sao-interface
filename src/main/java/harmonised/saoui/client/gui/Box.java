@@ -13,7 +13,7 @@ import java.util.List;
 
 public class Box extends Widget
 {
-    private MainWindow sr = Minecraft.getInstance().getWindow();
+    private MainWindow sr = Minecraft.getInstance().getMainWindow();
     private long lastRender = System.currentTimeMillis();
     public List<ListButton> buttons = new ArrayList<>();
 
@@ -51,7 +51,7 @@ public class Box extends Widget
     }
 
     @Override
-    public int getHeight()
+    public int getHeightRealms()
     {
         int buttonCount = Math.min( maxDisplayButtons, buttons.size() );
         return buttonCount*getButtonHeight() + ( Math.max( 0, buttonCount-1 ) )*buttonGap;
@@ -72,7 +72,7 @@ public class Box extends Widget
             int midButton = buttonCount/2;
             boolean isEven = buttonCount%2 == 0;
             int fadeInterval = 80;
-            Renderer.drawCenteredString( stack, Minecraft.getInstance().font, new StringTextComponent( "" + name ), x + getWidth()/2f, y - 10, 0xffffff );
+            Renderer.drawCenteredString( stack, Minecraft.getInstance().fontRenderer, new StringTextComponent( "" + name ), x + getWidth()/2f, y - 10, 0xffffff );
             int fadeStep;
             for( int i = 0; i < buttonCount; i++ )
             {
@@ -90,13 +90,13 @@ public class Box extends Widget
                 fadeStep = Math.abs( i - thisMidButton );
                 button.alpha = 255 - fadeInterval*fadeStep;
                 button.renderButton( stack, mouseX, mouseY, partialTicks );
-                Renderer.drawCenteredString( stack, Minecraft.getInstance().font, new StringTextComponent( "" + buttonIndex ), button.x, button.y, 0xffffff );
+                Renderer.drawCenteredString( stack, Minecraft.getInstance().fontRenderer, new StringTextComponent( "" + buttonIndex ), button.x, button.y, 0xffffff );
             }
         }
         else
         {
             emptyButton.x = x;
-            emptyButton.y = y - emptyButton.getHeight()/2f;
+            emptyButton.y = y - emptyButton.getHeightRealms()/2f;
             emptyButton.renderButton( stack, mouseX, mouseY, partialTicks );
         }
         lastRender = System.currentTimeMillis();
@@ -149,7 +149,7 @@ public class Box extends Widget
     @Override
     public boolean mouseScrolled( double mouseX, double mouseY, double amount )
     {
-        if( !scrollLocked && mouseX > x && mouseX < x+getWidth() && mouseY > y && mouseY < y+getHeight() )
+        if( !scrollLocked && mouseX > x && mouseX < x+getWidth() && mouseY > y && mouseY < y+ getHeightRealms() )
         {
             if( amount > 0 )
                 scrollPosGoal--;

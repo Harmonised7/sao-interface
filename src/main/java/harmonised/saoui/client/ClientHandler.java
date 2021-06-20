@@ -2,6 +2,7 @@ package harmonised.saoui.client;
 
 import harmonised.saoui.client.gui.Renderer;
 import harmonised.saoui.client.gui.SAOScreen;
+import harmonised.saoui.config.Confefeger;
 import harmonised.saoui.util.Reference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.DirtMessageScreen;
@@ -43,32 +44,32 @@ public class ClientHandler
     @SubscribeEvent
     public static void keyPressEvent( net.minecraftforge.client.event.InputEvent.KeyInputEvent event )
     {
-        if( !wasShowSaoInterface && SHOW_SAO_INTERFACE.isDown() )
+        if( !wasShowSaoInterface && SHOW_SAO_INTERFACE.isKeyDown() )
         {
             Minecraft mc = Minecraft.getInstance();
             PlayerEntity player = mc.player;
-            ClientWorld world = (ClientWorld) player.level;
-            Vector3d pos = player.position();
+            ClientWorld world = (ClientWorld) player.world;
+            Vector3d pos = player.getPositionVec();
 //            Minecraft.getInstance().particleEngine.add( new SaoParticle( world, pos.x, pos.y, pos.z ) );
-            Minecraft.getInstance().setScreen( new SAOScreen( new TranslationTextComponent( "" ) ) );
+            Minecraft.getInstance().displayGuiScreen( new SAOScreen( new TranslationTextComponent( "" ) ) );
         }
-        wasShowSaoInterface = SHOW_SAO_INTERFACE.isDown();
+        wasShowSaoInterface = SHOW_SAO_INTERFACE.isKeyDown();
     }
 
     @SubscribeEvent
     public static void particleRegisterEvent( ParticleFactoryRegisterEvent event )
     {
-        Minecraft.getInstance().particleEngine.register( SaoParticleTypes.TRIANGLE.get(), SaoParticle.Factory::new );
+//        Minecraft.getInstance().particles.registerFactory( SaoParticleTypes.TRIANGLE.get(), SaoParticle.Factory::new );
     }
 
     @SubscribeEvent
     public static void deathEvent( LivingDeathEvent event )
     {
         LivingEntity livingEntity = event.getEntityLiving();
-        World world = livingEntity.getCommandSenderWorld();
-        Vector3d pos = livingEntity.getPosition( 1f );
-        float width = livingEntity.getBbWidth();
-        float height = livingEntity.getBbHeight();
+        World world = livingEntity.getEntityWorld();
+        Vector3d pos = livingEntity.getPositionVec();
+        float width = livingEntity.getWidth();
+        float height = livingEntity.getHeight();
         for( int i = 0; i < 1000; i++ )
         {
             world.addParticle( ParticleTypes.CRIMSON_SPORE, pos.x - width + Math.random()*width*2, pos.y + Math.random()*height, pos.z - width + Math.random()*width*2, 0, 0, 0 );
@@ -78,23 +79,23 @@ public class ClientHandler
     public static void disconnect()
     {
         Minecraft mc = Minecraft.getInstance();
-        boolean flag = mc.isLocalServer();
+        boolean flag = mc.isIntegratedServerRunning();
         boolean flag1 = mc.isConnectedToRealms();
-        mc.level.disconnect();
+        mc.world.sendQuittingDisconnectingPacket();
         if (flag)
-            mc.clearLevel(new DirtMessageScreen(new TranslationTextComponent("menu.savingLevel")));
+            mc.unloadWorld(new DirtMessageScreen(new TranslationTextComponent("menu.savingLevel")));
         else
-            mc.clearLevel();
+            mc.unloadWorld();
 
         if (flag)
-            mc.setScreen(new MainMenuScreen());
+            mc.displayGuiScreen(new MainMenuScreen());
         else if (flag1)
         {
             RealmsBridgeScreen realmsbridgescreen = new RealmsBridgeScreen();
-            realmsbridgescreen.switchToRealms(new MainMenuScreen());
+            realmsbridgescreen.func_231394_a_(new MainMenuScreen());
         }
         else
-            mc.setScreen(new MultiplayerScreen(new MainMenuScreen()));
+            mc.displayGuiScreen(new MultiplayerScreen(new MainMenuScreen()));
     }
 
     //ANNOTFIG
@@ -103,8 +104,8 @@ public class ClientHandler
     @SubscribeEvent
     public static void worldLoad( ClientPlayerNetworkEvent.LoggedInEvent event )
     {
-        if( event.getPlayer().level.isClientSide() )
-            isServerLocal = Minecraft.getInstance().isLocalServer();
+        if( event.getPlayer().world.isRemote() )
+            isServerLocal = Minecraft.getInstance().isIntegratedServerRunning();
     }
 
     @SubscribeEvent
@@ -119,6 +120,14 @@ public class ClientHandler
                 event.setCanceled( true );
                 break;
         }
+    }
+
+    @SubscribeEvent
+    public static void clientLoggedIn( ClientPlayerNetworkEvent.LoggedInEvent event )
+    {
+        if( event.getPlayer().world.isRemote() )
+            isServerLocal = Minecraft.getInstance().isIntegratedServerRunning();
+        Confefeger.reloadAllConfefegs();
     }
 
     public static boolean isServerLocal()

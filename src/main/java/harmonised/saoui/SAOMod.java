@@ -1,8 +1,7 @@
 package harmonised.saoui;
 
 import harmonised.saoui.client.ClientHandler;
-import harmonised.saoui.config.Configs;
-import harmonised.saoui.config.SaoConfig;
+import harmonised.saoui.config.SaouiConfefeg;
 import harmonised.saoui.events.EventHandler;
 import harmonised.saoui.network.NetworkHandler;
 import harmonised.saoui.util.Reference;
@@ -12,7 +11,6 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
@@ -41,7 +39,6 @@ public class SAOMod
         pmmoLoaded = ModList.get().isLoaded( "pmmo" );
         FMLJavaModLoadingContext.get().getModEventBus().addListener( this::modsLoading );
         FMLJavaModLoadingContext.get().getModEventBus().addListener( this::clientLoading );
-        Configs.register( Reference.MOD_ID, SaoConfig.class );
 //        SaoParticleTypes.init();
     }
 
@@ -55,5 +52,15 @@ public class SAOMod
     {
         ClientHandler.init();
         isLocal = true;
+    }
+
+    public static boolean isLocal()
+    {
+        return isLocal;
+    }
+
+    public static boolean isServerLocal()
+    {
+        return ClientHandler.isServerLocal();
     }
 }

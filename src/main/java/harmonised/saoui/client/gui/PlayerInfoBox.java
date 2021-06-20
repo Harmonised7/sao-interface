@@ -17,7 +17,7 @@ public class PlayerInfoBox extends Box
     public void render( MatrixStack stack, int mouseX, int mouseY, float partialTicks )
     {
         renderBg( stack, Minecraft.getInstance(), mouseX, mouseY );
-        Renderer.drawEntityOnScreen( stack, x, y, 1, mouseX, mouseY, Minecraft.getInstance().player );
+//        Renderer.drawEntityOnScreen( stack, x, y, 1, mouseX, mouseY, Minecraft.getInstance().player );
     }
 
     @Override
@@ -27,7 +27,7 @@ public class PlayerInfoBox extends Box
     }
 
     @Override
-    public int getHeight()
+    public int getHeightRealms()
     {
         return height;
     }

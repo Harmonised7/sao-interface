@@ -50,8 +50,8 @@ public class SAOScreen extends Screen
     private long lastUpdate = System.currentTimeMillis();
 
     public static Minecraft mc = Minecraft.getInstance();
-    MainWindow sr = mc.getWindow();
-    FontRenderer font = mc.font;
+    MainWindow sr = mc.getMainWindow();
+    FontRenderer font = mc.fontRenderer;
     private final int boxesGap = 6;
     private int x;
     private int y;
@@ -156,7 +156,7 @@ public class SAOScreen extends Screen
         for ( Box box : boxes )
         {
             box.x = (int) xOffset + middleX + compound;
-            box.y = (int) yOffset + middleY - box.getHeight() / 2f;
+            box.y = (int) yOffset + middleY - box.getHeightRealms() / 2f;
             lastWidth = box.getWidth() + boxesGap;
 
             compound += lastWidth;
@@ -181,7 +181,7 @@ public class SAOScreen extends Screen
         if( extraBox != null )
         {
             extraBox.x = (float) xOffset + middleX - pos - extraBox.getWidth() - boxesGap;
-            extraBox.y = (float) yOffset + extraBox.getHeight()/2f;
+            extraBox.y = (float) yOffset + extraBox.getHeightRealms()/2f;
         }
 
         lastRender = System.currentTimeMillis();
@@ -265,8 +265,8 @@ public class SAOScreen extends Screen
     {
         SAOScreen.xOffset += deltaX;
         SAOScreen.yOffset += deltaY;
-        SAOScreen.xOffset = Util.cap( SAOScreen.xOffset, -sr.getGuiScaledWidth()/2D, sr.getGuiScaledWidth()/2D );
-        SAOScreen.yOffset = Util.cap( SAOScreen.yOffset, -sr.getGuiScaledHeight()/2D, sr.getGuiScaledHeight()/2D );
+        SAOScreen.xOffset = Util.cap( SAOScreen.xOffset, -sr.getScaledWidth()/2D, sr.getScaledWidth()/2D );
+        SAOScreen.yOffset = Util.cap( SAOScreen.yOffset, -sr.getScaledHeight()/2D, sr.getScaledHeight()/2D );
         return super.mouseDragged( mouseX, mouseY, button, deltaX, deltaY );
     }
 
@@ -373,9 +373,9 @@ public class SAOScreen extends Screen
     {
         PlayerInventory inv = mc.player.inventory;
         RecipeItemHelper stackedContents = new RecipeItemHelper();
-        inv.fillStackedContents( stackedContents );
+        inv.accountStacks( stackedContents );
         ClientRecipeBook book = mc.player.getRecipeBook();
-        for( RecipeList recipeList : book.getCollection( category ) )
+        for( RecipeList recipeList : book.getRecipes( category ) )
         {
             recipeList.canCraft( stackedContents, 3, 3, book );
             for( IRecipe recipe : recipeList.getRecipes() )
@@ -383,10 +383,10 @@ public class SAOScreen extends Screen
 
                 if( recipeList.isCraftable( recipe ) )
                 {
-                    box.addButton( new ListButton( box ).setItemStack( recipe.getResultItem(), true ).onPress( theButton ->
+                    box.addButton( new ListButton( box ).setItemStack( recipe.getRecipeOutput(), true ).onPress( theButton ->
                     {
                         NetworkHandler.sendToServer( new MessageCraft( recipe.getId(), 1 ) );
-                        System.out.println( "Client crafting " + recipe.getResultItem().getDisplayName().getString() );
+                        System.out.println( "Client crafting " + recipe.getRecipeOutput().getDisplayName().getString() );
                     }));
                 }
             }
@@ -456,7 +456,7 @@ public class SAOScreen extends Screen
         if( reqDistance == -1 )
             reqDistance = Config.forgeConfig.partyRange.get();
 
-        for( String playerName : PartyPendingSystem.offlineData.getAllKeys() )
+        for( String playerName : PartyPendingSystem.offlineData.keySet() )
         {
             if( playerName.equals( mc.player.getDisplayName().getString() ) )
             {
@@ -473,7 +473,7 @@ public class SAOScreen extends Screen
                 String distanceText = "";
                 if( online )
                 {
-                    double distance = Util.getDistance( mc.player.position(), new Vector3d( playerData.getDouble( "x" ), playerData.getDouble( "y" ), playerData.getDouble( "z" ) ) );
+                    double distance = Util.getDistance( mc.player.getPositionVec(), new Vector3d( playerData.getDouble( "x" ), playerData.getDouble( "y" ), playerData.getDouble( "z" ) ) );
                     textColor = distance < reqDistance ? 0x44ff44 : 0xff4444;
                     distanceText = distance + "m";
                 }
@@ -508,7 +508,7 @@ public class SAOScreen extends Screen
 
             box.addButton( new ListButton( box ).setIcon( Icons.MINUS ).setMsg( new TranslationTextComponent( "saoui.leave" ) ).onPress( theButton ->
             {
-                mc.getConnection().send( new CChatMessagePacket( "/pmmo party leave" ) );
+                mc.getConnection().sendPacket( new CChatMessagePacket( "/pmmo party leave" ) );
                 PartyPendingSystem.offlineData = new CompoundNBT();
                 generatePartyButtons( box, false );
             }));
@@ -517,19 +517,19 @@ public class SAOScreen extends Screen
         {
             box.addButton( new ListButton( box ).setIcon( Icons.PLUS ).setMsg( new TranslationTextComponent( "saoui.create" ) ).onPress( theButton ->
             {
-                mc.getConnection().send( new CChatMessagePacket( "/pmmo party create" ) );
+                mc.getConnection().sendPacket( new CChatMessagePacket( "/pmmo party create" ) );
                 generatePartyButtons( box, inParty() );
             }));
 
             box.addButton( new ListButton( box ).setIcon( Icons.CHECKMARK ).setMsg( new TranslationTextComponent( "saoui.accept" ) ).onPress( theButton ->
             {
-                mc.getConnection().send( new CChatMessagePacket( "/pmmo party accept" ) );
+                mc.getConnection().sendPacket( new CChatMessagePacket( "/pmmo party accept" ) );
                 generatePartyButtons( box, PartyPendingSystem.offlineData.size() > 0 );
             }));
 
             box.addButton( new ListButton( box ).setIcon( Icons.X ).setMsg( new TranslationTextComponent( "saoui.decline" ) ).onPress( theButton ->
             {
-                mc.getConnection().send( new CChatMessagePacket( "/pmmo party decline" ) );
+                mc.getConnection().sendPacket( new CChatMessagePacket( "/pmmo party decline" ) );
                 generatePartyButtons( box, inParty() );
             }));
         }
@@ -738,10 +738,10 @@ public class SAOScreen extends Screen
     {
         box.clearButtons();
         PlayerInventory inv = mc.player.inventory;
-        int invSize = inv.getContainerSize();
+        int invSize = inv.getSizeInventory();
         for( int i = 0; i < invSize; i++ )
         {
-            ItemStack itemStack = inv.getItem( i );
+            ItemStack itemStack = inv.getStackInSlot( i );
             if( !itemStack.isEmpty() )
             {
                 Item item = itemStack.getItem();
@@ -755,21 +755,21 @@ public class SAOScreen extends Screen
 //                        System.out.println( attribute.getKey().getRegistryName() );
 //                    }
 //                }
-                int slot = inv.selected;
+                int slot = inv.currentItem;
                 switch( type )
                 {
                     case "blocks":
-                        if( !(item instanceof BlockItem || itemGroups.contains( ItemGroup.TAB_BUILDING_BLOCKS ) ) )
+                        if( !(item instanceof BlockItem || itemGroups.contains( ItemGroup.BUILDING_BLOCKS ) ) )
                             continue;
                         break;
 
                     case "potions":
-                        if( !(item instanceof PotionItem || itemGroups.contains( ItemGroup.TAB_BREWING )) )
+                        if( !(item instanceof PotionItem || itemGroups.contains( ItemGroup.BREWING )) )
                             continue;
                         break;
 
                     case "food":
-                        if( item.getFoodProperties() == null || !itemGroups.contains( ItemGroup.TAB_FOOD ) )
+                        if( item.getFood() == null || !itemGroups.contains( ItemGroup.FOOD ) )
                             continue;
                         break;
 
@@ -815,7 +815,7 @@ public class SAOScreen extends Screen
                         break;
 
                     case "redstone":
-                        if( !itemGroups.contains( ItemGroup.TAB_REDSTONE ) )
+                        if( !itemGroups.contains( ItemGroup.REDSTONE ) )
                             continue;
                         break;
                 }
@@ -877,10 +877,10 @@ public class SAOScreen extends Screen
     {
         box.clearButtons();
         PlayerInventory inv = mc.player.inventory;
-        int invSize = inv.getContainerSize();
+        int invSize = inv.getSizeInventory();
         for( int i = 0; i < invSize; i++ )
         {
-            ItemStack itemStack = inv.getItem( i );
+            ItemStack itemStack = inv.getStackInSlot( i );
             if( !itemStack.isEmpty() )
             {
                 if( itemStack.canEquip( slot, mc.player ) )
@@ -911,22 +911,22 @@ public class SAOScreen extends Screen
     public static void updateCollections( boolean p_193003_1_, RecipeBookCategories category )
     {
         ClientRecipeBook book = mc.player.getRecipeBook();
-        List<RecipeList> list = book.getCollection( category );
+        List<RecipeList> list = book.getRecipes( category );
         RecipeItemHelper stackedContents = new RecipeItemHelper();
         list.forEach((p_193944_1_) -> {
             p_193944_1_.canCraft( stackedContents, 3, 3, book );
         });
         List<RecipeList> list1 = Lists.newArrayList(list);
         list1.removeIf((p_193952_0_) -> {
-            return !p_193952_0_.hasKnownRecipes();
+            return !p_193952_0_.isNotEmpty();
         });
         list1.removeIf((p_193953_0_) -> {
-            return !p_193953_0_.hasFitting();
+            return !p_193953_0_.containsValidRecipes();
         });
         String s = "";
         if (!s.isEmpty())
         {
-            ObjectSet<RecipeList> objectset = new ObjectLinkedOpenHashSet<>( mc.getSearchTree(SearchTreeManager.RECIPE_COLLECTIONS).search(s.toLowerCase(Locale.ROOT)));
+            ObjectSet<RecipeList> objectset = new ObjectLinkedOpenHashSet<>( mc.getSearchTree(SearchTreeManager.RECIPES).search(s.toLowerCase(Locale.ROOT)));
             list1.removeIf((p_193947_1_) -> {
                 return !objectset.contains(p_193947_1_);
             });

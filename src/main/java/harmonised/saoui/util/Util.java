@@ -21,7 +21,7 @@ public class Util
 {
     public static ResourceLocation getDimensionResLoc(World world )
     {
-        return world.dimension().getRegistryName();
+        return world.getDimensionKey().getRegistryName();
     }
 
     public static ResourceLocation getResLoc( String regKey )
@@ -118,7 +118,7 @@ public class Util
 
     public static double getDistance( Vector3d pos1, Vector3d pos2 )
     {
-        return Math.sqrt( Math.pow( pos2.x() - pos1.x(), 2 ) + Math.pow( pos2.y() - pos1.y(), 2 )+ Math.pow( pos2.z - pos1.z(), 2 ) );
+        return Math.sqrt( Math.pow( pos2.x - pos1.x, 2 ) + Math.pow( pos2.y - pos1.y, 2 )+ Math.pow( pos2.z - pos1.z, 2 ) );
     }
 
     public static double getDistance( double x1, double y1, double z1, double x2, double y2, double z2 )
@@ -150,10 +150,10 @@ public class Util
     public static int findEmptyInvSlot( PlayerInventory inv )
     {
         int emptySlot = -1;
-        int invSize = inv.items.size();
+        int invSize = inv.mainInventory.size();
         for( int i = 0; i < invSize && i < 36; i++ )
         {
-            if( inv.getItem( i ).isEmpty() )
+            if( inv.getStackInSlot( i ).isEmpty() )
                 return i;
         }
         return emptySlot;
@@ -163,13 +163,13 @@ public class Util
     {
         {
             PlayerInventory inv = player.inventory;
-            ItemStack itemA = inv.getItem( a );
-            ItemStack itemB = inv.getItem( b );
-            if( inv.canPlaceItem( a, itemB ) && inv.canPlaceItem( b, itemA ) )
+            ItemStack itemA = inv.getStackInSlot( a );
+            ItemStack itemB = inv.getStackInSlot( b );
+            if( inv.isItemValidForSlot( a, itemB ) && inv.isItemValidForSlot( b, itemA ) )
             {
-                inv.setItem( a, itemB );
-                inv.setItem( b, itemA );
-                if( player.getCommandSenderWorld().isClientSide() )
+                inv.setInventorySlotContents( a, itemB );
+                inv.setInventorySlotContents( b, itemA );
+                if( player.getEntityWorld().isRemote() )
                 {
                     NetworkHandler.sendToServer( new MessageSwapItems( a, b ) );
                 }
@@ -202,7 +202,7 @@ public class Util
         }
 
         //Count Inventory Ingredients
-        for( ItemStack itemStack : inv.items )
+        for( ItemStack itemStack : inv.mainInventory )
         {
             Item item = itemStack.getItem();
             if( ingredientsPerCraftMap.containsKey( item ) )
@@ -255,7 +255,7 @@ public class Util
                 effectNBT.putInt( "amp", effect.getAmplifier() );
                 effectNBT.putInt( "time", effect.getDuration() );
 
-                effectsNBT.put( effect.getEffect().getRegistryName().toString(), effectNBT );
+                effectsNBT.put( effect.getPotion().getRegistryName().toString(), effectNBT );
             }
 
             nbt.put( "" + entry.getKey(), effectsNBT );
@@ -268,12 +268,12 @@ public class Util
     {
         Map<Integer, List<EffectInstance>> effects = new HashMap<>();
 
-        for( String mobId : nbt.getAllKeys() )
+        for( String mobId : nbt.keySet() )
         {
             List<EffectInstance> effectInstances = new ArrayList<>();
 
             CompoundNBT effectInstancesNBT = nbt.getCompound( mobId );
-            for( String effectKey : effectInstancesNBT.getAllKeys() )
+            for( String effectKey : effectInstancesNBT.keySet() )
             {
                 CompoundNBT effectInstanceNBT = effectInstancesNBT.getCompound( effectKey );
                 ResourceLocation effectResLoc = new ResourceLocation( effectKey );

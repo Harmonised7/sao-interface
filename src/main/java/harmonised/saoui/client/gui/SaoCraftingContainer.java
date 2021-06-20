@@ -14,7 +14,7 @@ public class SaoCraftingContainer extends Container
     }
 
     @Override
-    public boolean stillValid(PlayerEntity p_75145_1_)
+    public boolean canInteractWith(PlayerEntity p_75145_1_)
     {
         return false;
     }

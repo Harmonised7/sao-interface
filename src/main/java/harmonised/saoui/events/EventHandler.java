@@ -1,16 +1,18 @@
 package harmonised.saoui.events;
 
-import harmonised.saoui.config.Configs;
-import harmonised.saoui.config.SaoConfig;
+import harmonised.saoui.config.Confefeger;
 import harmonised.saoui.util.Reference;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
 
 @Mod.EventBusSubscriber( modid = Reference.MOD_ID )
 public class EventHandler
@@ -19,8 +21,8 @@ public class EventHandler
     public static void deathEvent( LivingDeathEvent event )
     {
         LivingEntity livingEntity = event.getEntityLiving();
-        World world = livingEntity.getCommandSenderWorld();
-        if( world.isClientSide() )
+        World world = livingEntity.getEntityWorld();
+        if( world.isRemote() )
         {
 //            Renderer.hpBars.remove( livingEntity );
         }
@@ -50,5 +52,17 @@ public class EventHandler
     public static void worldTickHandler( TickEvent.WorldTickEvent event )
     {
         WorldTickHandler.handleWorldTick( event );
+    }
+
+    @SubscribeEvent
+    public static void serverStartedEvent( FMLServerStartedEvent event )
+    {
+        Confefeger.saveAllConfefegers();
+    }
+
+    @SubscribeEvent
+    public static void playerLoggedIn( PlayerEvent.PlayerLoggedInEvent event )
+    {
+        Confefeger.syncAllConfefegs( (ServerPlayerEntity) event.getPlayer() );
     }
 }

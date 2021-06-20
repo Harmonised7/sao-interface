@@ -22,7 +22,7 @@ public class WorldTickHandler
 
     public static void handleWorldTick( TickEvent.WorldTickEvent event )
     {
-        if( !event.world.isClientSide() )
+        if( !event.world.isRemote() )
         {
             ServerWorld world = (ServerWorld) event.world;
             ResourceLocation dimResLoc = Util.getDimensionResLoc( world );
@@ -38,23 +38,23 @@ public class WorldTickHandler
                     if( entity instanceof MobEntity )
                     {
                         MobEntity mob = (MobEntity) entity;
-                        LivingEntity target = mob.getTarget();
+                        LivingEntity target = mob.getAttackTarget();
                         if( target instanceof ServerPlayerEntity )
                         {
                             ServerPlayerEntity player = (ServerPlayerEntity) target;
                             if( !dimVictimMap.containsKey( player ) )
                                 dimVictimMap.put( player, new HashSet<>() );
-                            dimVictimMap.get( player ).add( mob.getId() );
+                            dimVictimMap.get( player ).add( mob.getEntityId() );
                         }
-                        effects.put( mob.getId(), new ArrayList<>( mob.getActiveEffects() ) );
+                        effects.put( mob.getEntityId(), new ArrayList<>( mob.getActivePotionEffects() ) );
                     }
                 }
                 for( ServerPlayerEntity player : dimVictimMap.keySet() )
                 {
-                    if( dimResLoc.equals( Util.getDimensionResLoc( player.getLevel() ) ) )
+                    if( dimResLoc.equals( Util.getDimensionResLoc( player.getServerWorld() ) ) )
                         NetworkHandler.sendToPlayer( new MessageIntArray( 0, dimVictimMap.get( player ) ), player );
                 }
-                for( ServerPlayerEntity player : world.players() )
+                for( ServerPlayerEntity player : world.getPlayers() )
                 {
                     NetworkHandler.sendToPlayer( new MessageNBT( 0, Util.entityEffectInstanceMapToNBT( effects ) ), player );
                 }

@@ -7,6 +7,6 @@ public class PlayerTickHandler
     public static void handlePlayerTick( TickEvent.PlayerTickEvent event )
     {
 //        if( System.currentTimeMillis() % 1000 < 50 )
-//            event.player.getFoodData().addExhaustion( 1f );
+//            event.player.getFoodStats().addExhaustion( 1f );
     }
 }

@@ -31,7 +31,7 @@ public class CircleButton extends ListButton
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        mc.getTextureManager().bind( background );
+        mc.getTextureManager().bindTexture( background );
 
         int backgroundColor = iconBaseColor;
         if( locked )
@@ -39,12 +39,12 @@ public class CircleButton extends ListButton
         else if( isActive() || isHovered() )
             backgroundColor = hoverColor;
 
-        Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeight(), 0, circleButtonSize, circleButtonSize, 0, 0, circleButtonSize, circleButtonSize, backgroundColor, alpha  );
+        Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, circleButtonSize, circleButtonSize, 0, 0, circleButtonSize, circleButtonSize, backgroundColor, alpha  );
 
         if( foreground != null )
         {
-            mc.getTextureManager().bind( foreground );
-            Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeight(), 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, locked ? iconColor : isHovered() ? iconHoverColor : iconColor, alpha  );
+            mc.getTextureManager().bindTexture( foreground );
+            Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, locked ? iconColor : isHovered() ? iconHoverColor : iconColor, alpha  );
         }
     }
 

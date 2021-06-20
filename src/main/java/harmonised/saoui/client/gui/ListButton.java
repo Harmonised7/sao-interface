@@ -3,7 +3,7 @@ package harmonised.saoui.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import harmonised.saoui.config.SaoConfig;
+import harmonised.saoui.config.SaouiConfefeg;
 import harmonised.saoui.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -11,7 +11,6 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -22,7 +21,7 @@ import java.util.UUID;
 public class ListButton extends Button
 {
     public Minecraft mc = Minecraft.getInstance();
-    private FontRenderer font = mc.font;
+    private FontRenderer font = mc.fontRenderer;
     private boolean isCircle = false;
     public String regKey, buttonText;
     public UUID uuid;
@@ -30,15 +29,15 @@ public class ListButton extends Button
     public Box extraBox = null;
     public float x, y;
     public boolean displayTooltip = false, locked = false;
-    public int color = SaoConfig.buttonColor,
-               lockedColor = SaoConfig.buttonLockedColor,
+    public int color = SaouiConfefeg.buttonColor.get(),
+               lockedColor = SaouiConfefeg.buttonLockedColor.get(),
                alpha = 255,
-               hoverColor = SaoConfig.buttonHoverColor,
-               activeColor = SaoConfig.buttonActiveColor,
-               textColor = SaoConfig.textColor,
-               iconBaseColor = SaoConfig.iconBaseColor,
-               iconColor = SaoConfig.iconColor,
-               iconHoverColor = SaoConfig.iconHoverColor;
+               hoverColor = SaouiConfefeg.buttonHoverColor.get(),
+               activeColor = SaouiConfefeg.buttonActiveColor.get(),
+               textColor = SaouiConfefeg.textColor.get(),
+               iconBaseColor = SaouiConfefeg.iconBaseColor.get(),
+               iconColor = SaouiConfefeg.iconColor.get(),
+               iconHoverColor = SaouiConfefeg.iconHoverColor.get();
     ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
 
     private final ResourceLocation background = Icons.RECTANGLE_BUTTON;
@@ -58,10 +57,12 @@ public class ListButton extends Button
     }
 
     @Override
-    public int getHeight()
+    public int getHeightRealms()
     {
         return height;
     }
+
+
 
     @Override
     public int getWidth()
@@ -71,7 +72,7 @@ public class ListButton extends Button
 
     public int getTextWidth()
     {
-        return font.width( getMessage() );
+        return font.getStringPropertyWidth( getMessage() );
     }
 
     public int getIconWidth()
@@ -88,7 +89,7 @@ public class ListButton extends Button
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        mc.getTextureManager().bind( background );
+        mc.getTextureManager().bindTexture( background );
 
         int backgroundColor = color;
         if( locked )
@@ -99,14 +100,14 @@ public class ListButton extends Button
             backgroundColor = hoverColor;
         else if( itemStack != null )
         {
-            if( color != activeColor && itemStack.isDamageableItem() && itemStack.isDamaged() )
+            if( color != activeColor && itemStack.isDamageable() && itemStack.isDamaged() )
             {
-                int damageIn8Bit = (int) Util.map( itemStack.getDamageValue(), 0, itemStack.getMaxDamage(), 200, 0 );
+                int damageIn8Bit = (int) Util.map( itemStack.getDamage(), 0, itemStack.getMaxDamage(), 200, 0 );
                 backgroundColor = damageIn8Bit | damageIn8Bit << 8 | 255 << 16;
             }
         }
 
-        Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeight(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, backgroundColor, alpha  );
+        Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, backgroundColor, alpha  );
 
 //        System.out.println( x + " " + y );
 //        this.renderBg( stack, mc, mouseX, mouseY);
@@ -114,18 +115,18 @@ public class ListButton extends Button
 
         if( foreground != null )
         {
-            mc.getTextureManager().bind( Icons.ICON_BASE );
+            mc.getTextureManager().bindTexture( Icons.ICON_BASE );
             Renderer.mirrorBlitColor( stack, x + 2, x + getIconWidth() + 2, y + 1, y + getIconWidth() + 1, 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, iconBaseColor, alpha );
-            mc.getTextureManager().bind( foreground );
+            mc.getTextureManager().bindTexture( foreground );
             Renderer.mirrorBlitColor( stack, x + 2, x + getIconWidth() + 2, y + 1, y + getIconWidth() + 1, 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, isHovered() ? iconHoverColor : iconColor, alpha );
         }
         else if( itemStack != null )
             Renderer.renderGuiItem( itemStack, x + 2, y + 1 );
 
         if( foreground != null || itemStack != null )
-            Renderer.drawString( stack, font, this.getMessage(), x + getIconWidth() + 4, y + getHeight()/4f, /* alpha << 24 | */ textColor );
+            Renderer.drawString( stack, font, this.getMessage(), x + getIconWidth() + 4, y + getHeightRealms()/4f, /* alpha << 24 | */ textColor );
         else
-            Renderer.drawCenteredString( stack, font, this.getMessage(), x + getWidth()/2f, y + getHeight()/4f, /* alpha << 24 | */ textColor );
+            Renderer.drawCenteredString( stack, font, this.getMessage(), x + getWidth()/2f, y + getHeightRealms()/4f, /* alpha << 24 | */ textColor );
     }
 
     public void renderTooltip( MatrixStack stack, int mouseX, int mouseY, float partialTicks )
@@ -139,7 +140,7 @@ public class ListButton extends Button
 
     public boolean isHovered( double mouseX, double mouseY )
     {
-        return mouseX > x && mouseX < x+getWidth() && mouseY > y && mouseY < y+getHeight();
+        return mouseX > x && mouseX < x+getWidth() && mouseY > y && mouseY < y+ getHeightRealms();
     }
 
     @Override
@@ -176,14 +177,14 @@ public class ListButton extends Button
 
     public ListButton setMsg( ItemStack itemStack )
     {
-        return setMsg( new StringTextComponent( ( itemStack.getMaxStackSize() > 1 ? itemStack.getCount() + "x " : "" ) + itemStack.getHoverName().getString() ) );
+        return setMsg( new StringTextComponent( ( itemStack.getMaxStackSize() > 1 ? itemStack.getCount() + "x " : "" ) + itemStack.getDisplayName().getString() ) );
 
     }
 
     public ListButton setMsg( ITextComponent msg )
     {
         super.setMessage( msg );
-        int msgWidth = font.width( msg ) + 8;
+        int msgWidth = font.getStringPropertyWidth( msg ) + 8;
         if( getWidth() < msgWidth )
             setWidth( msgWidth );
         return this;

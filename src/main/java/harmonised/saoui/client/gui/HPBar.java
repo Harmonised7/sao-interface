@@ -22,13 +22,13 @@ public class HPBar
         {
             isPlayer = true;
             PlayerEntity player = (PlayerEntity) livingEntity;
-            this.hungerPos = player.getFoodData().getFoodLevel() / 40f;
-            this.saturationPos = player.getFoodData().getSaturationLevel() / 40f;
+            this.hungerPos = player.getFoodStats().getFoodLevel() / 40f;
+            this.saturationPos = player.getFoodStats().getSaturationLevel() / 40f;
         }
         else
             isPlayer = false;
-        this.xRot = livingEntity.xRot;
-        this.yRot = livingEntity.yHeadRot;
+        this.xRot = livingEntity.rotationPitch;
+        this.yRot = livingEntity.rotationYawHead;
     }
 
     public LivingEntity getLivingEntity()
@@ -44,19 +44,19 @@ public class HPBar
         lastUpdate = ms;
 
         //X Rotation
-        xRot = Util.getDeltaChange( xRot, livingEntity.xRot - xRot, d );
+        xRot = Util.getDeltaChange( xRot, livingEntity.rotationPitch - xRot, d );
 
         //Y Rotation
-        yRot = Util.getDeltaChange( yRot, livingEntity.yHeadRot - yRot, d );
+        yRot = Util.getDeltaChange( yRot, livingEntity.rotationYawHead - yRot, d );
 
         //Hunger
         if( isPlayer )
         {
-            float hungerRatio = ((PlayerEntity) livingEntity).getFoodData().getFoodLevel() / 40f;
+            float hungerRatio = ((PlayerEntity) livingEntity).getFoodStats().getFoodLevel() / 40f;
             float hungerDiff = hungerRatio - hungerPos;
             hungerPos = Util.getDeltaChange( hungerPos, hungerDiff, d*0.1f );
 
-            float saturationRatio = ((PlayerEntity) livingEntity).getFoodData().getSaturationLevel() / 40f;
+            float saturationRatio = ((PlayerEntity) livingEntity).getFoodStats().getSaturationLevel() / 40f;
             float saturationDiff = saturationRatio - saturationPos;
             saturationPos = Util.getDeltaChange( saturationPos, saturationDiff, d*0.1f );
         }

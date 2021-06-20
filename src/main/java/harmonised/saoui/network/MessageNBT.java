@@ -31,7 +31,7 @@ public class MessageNBT
         MessageNBT packet = new MessageNBT();
 
         packet.type = buf.readInt();
-        packet.nbt = buf.readNbt();
+        packet.nbt = buf.readCompoundTag();
 
         return packet;
     }
@@ -39,7 +39,7 @@ public class MessageNBT
     public static void encode(MessageNBT packet, PacketBuffer buf )
     {
         buf.writeInt( packet.type );
-        buf.writeNbt( packet.nbt );
+        buf.writeCompoundTag( packet.nbt );
     }
 
     public static void handlePacket(MessageNBT packet, Supplier<NetworkEvent.Context> ctx )

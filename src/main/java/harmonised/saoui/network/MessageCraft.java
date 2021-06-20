@@ -26,7 +26,7 @@ public class MessageCraft
     {
         MessageCraft packet = new MessageCraft();
 
-        packet.recipe = new ResourceLocation( buf.readUtf() );
+        packet.recipe = new ResourceLocation( buf.readString() );
         packet.amount = buf.readInt();
 
         return packet;
@@ -34,7 +34,7 @@ public class MessageCraft
 
     public static void encode(MessageCraft packet, PacketBuffer buf )
     {
-        buf.writeUtf( packet.recipe.toString() );
+        buf.writeString( packet.recipe.toString() );
         buf.writeInt( packet.amount );
     }
 
