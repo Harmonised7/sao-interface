@@ -38,5 +38,12 @@
   "saoui.xMembers": "%1$s Members",
   "saoui.1Member": "1 Member",
   "saoui.you": "You",
-  "saoui.guiSettings": "GUI"
+  "saoui.guiSettings": "GUI",
+  "saoui.gui.hpBar": "Health Bar",
+  "saoui.gui.hungerBar": "Hunger Bar",
+  "saoui.gui.buttons": "Buttons",
+  "saoui.gui.npcIndicator": "NPC Indicator",
+  "saoui.gui.effectIndicator": "Effect Indicator",
+  "saoui.reload": "Reload",
+  "saoui.reloadAll": "Reload All"
 }

@@ -9,6 +9,8 @@ import harmonised.pmmo.util.DP;
 import harmonised.pmmo.util.XP;
 import harmonised.saoui.SAOMod;
 import harmonised.saoui.client.ClientHandler;
+import harmonised.saoui.config.Confefeger;
+import harmonised.saoui.config.SaouiConfefeg;
 import harmonised.saoui.network.MessageCraft;
 import harmonised.saoui.network.NetworkHandler;
 import harmonised.saoui.util.Reference;
@@ -556,7 +558,7 @@ public class SAOScreen extends Screen
             {
                 openBox( (ListButton) theButton, getPmmoHiscoreBox( skill.getKey() ) );
             });
-            button.textColor = Skill.getSkillColor( skill.getKey() );
+            button.customTextColor = Skill.getSkillColor( skill.getKey() );
             button.regKey = skill.getKey();
             button.uuid = uuid;
             playerButtons.add( button );
@@ -593,26 +595,62 @@ public class SAOScreen extends Screen
     {
         Box box = new Box( "settings" );
 
-        box.addButton( new ListButton( box ).setLock( Math.random() <= 0.01 ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".guiSettings" ) ).onPress( theButton ->
+        box.addButton( new ListButton( box ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".reloadAll" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getGuiSettingsBox() );
+            Confefeger.reloadAllConfefegs();
         }));
 
-//        box.addButton( new ListButton( box ).setLock( Math.random() <= 0.01 ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".guiSettings" ) ).onPress( theButton ->
-//        {
-//            openBox( (ListButton) theButton, getSettingsBox() );
-//        }));
+        for( Confefeger confefeger : Confefeger.confefegers.values() )
+        {
+            box.addButton( new ListButton( box ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( "confefeg." + confefeger.confefegName ) ).onPress( theButton ->
+            {
+                openBox( (ListButton) theButton, getConfefegerBox( confefeger ) );
+            }));
+        }
 
         return box;
     }
 
-    private static Box getGuiSettingsBox()
+    private static Box getConfefegerBox( Confefeger confefeger )
     {
-        Box box = new Box( "guiSettings" );
+        Box box = new Box( "confefeg." + confefeger.confefegName );
 
-        box.addButton( new ListButton( box ).setLock( Math.random() <= 0.01 ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".config." ) ).onPress( theButton ->
+        Map<String, Confefeger.Confefeg> confefegs = confefeger.getConfefegs();
+        Map<String, Set<Confefeger.Confefeg>> categoryConfefegs = new HashMap<>();
+
+        for( Confefeger.Confefeg confefeg : confefegs.values() )
         {
+            if( !categoryConfefegs.containsKey( confefeg.category ) )
+                categoryConfefegs.put( confefeg.category, new HashSet<>() );
+            categoryConfefegs.get( confefeg.category ).add( confefeg );
+        }
+
+        box.addButton( new ListButton( box ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".reload" ) ).onPress( theButton ->
+        {
+            confefeger.reloadConfefegs();
         }));
+
+        for( Map.Entry<String, Set<Confefeger.Confefeg>> entry : categoryConfefegs.entrySet() )
+        {
+            box.addButton( new ListButton( box ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + "." + entry.getKey() ) ).onPress( theButton ->
+            {
+                openBox( (ListButton) theButton, getConfefegsBox( entry.getKey(), entry.getValue() ) );
+            }));
+        }
+
+        return box;
+    }
+
+    private static Box getConfefegsBox( String boxKey, Set<Confefeger.Confefeg> confefegs )
+    {
+        Box box = new Box( boxKey );
+
+        for( Confefeger.Confefeg confefeg : confefegs )
+        {
+            box.addButton( new ConfigButton( box ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + "." + confefeg.name ) ).onPress( theButton ->
+            {
+            }));
+        }
 
         return box;
     }

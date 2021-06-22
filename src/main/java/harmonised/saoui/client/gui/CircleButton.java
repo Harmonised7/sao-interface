@@ -3,6 +3,7 @@ package harmonised.saoui.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import harmonised.saoui.config.SaouiConfefeg;
 import harmonised.saoui.util.Util;
 import net.minecraft.util.ResourceLocation;
 
@@ -10,10 +11,6 @@ public class CircleButton extends ListButton
 {
     public final ResourceLocation background = Icons.CIRCLE_BUTTON;
     private static final int circleButtonSize = 128;
-
-//    public int color = SaoConfig.iconBaseColor,
-//               hoverColor = SaoConfig.hoverColor,
-//               activeColor = SaoConfig.activeColor;
 
     public CircleButton( Box box )
     {
@@ -33,18 +30,18 @@ public class CircleButton extends ListButton
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         mc.getTextureManager().bindTexture( background );
 
-        int backgroundColor = iconBaseColor;
+        int backgroundColor = SaouiConfefeg.iconBaseColor.get();
         if( locked )
-            backgroundColor = lockedColor;
+            backgroundColor = SaouiConfefeg.buttonLockedColor.get();
         else if( isActive() || isHovered() )
-            backgroundColor = hoverColor;
+            backgroundColor = SaouiConfefeg.iconHoverColor.get();
 
         Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, circleButtonSize, circleButtonSize, 0, 0, circleButtonSize, circleButtonSize, backgroundColor, alpha  );
 
         if( foreground != null )
         {
             mc.getTextureManager().bindTexture( foreground );
-            Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, locked ? iconColor : isHovered() ? iconHoverColor : iconColor, alpha  );
+            Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, locked ? SaouiConfefeg.iconColor.get() : isHovered() ? SaouiConfefeg.iconHoverColor.get() : SaouiConfefeg.iconColor.get(), alpha  );
         }
     }
 

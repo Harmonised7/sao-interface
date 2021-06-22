@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 public class SaouiConfefeg
 {
     public static Confefeger confefeger = Confefeger.registerConfefeg( Reference.MOD_ID );
+    //Buttons
     public static Confefeger.Confefeg<Integer> buttonColor;
     public static Confefeger.Confefeg<Integer> buttonLockedColor;
     public static Confefeger.Confefeg<Integer> buttonHoverColor;
@@ -17,47 +18,207 @@ public class SaouiConfefeg
     public static Confefeger.Confefeg<Integer> iconBaseColor;
     public static Confefeger.Confefeg<Integer> iconHoverColor;
 
+    //Hp Bar
+    public static Confefeger.Confefeg<Integer> hpBarGainIndicatorColor;
+    public static Confefeger.Confefeg<Integer> hpBarLossIndicatorColor;
+    public static Confefeger.Confefeg<Integer> hpBarPolyCount;
+    public static Confefeger.Confefeg<Integer> renderDistance;
+
+    public static Confefeger.Confefeg<Float> hpBarScalePlayer;
+    public static Confefeger.Confefeg<Float> hpBarScaleOthers;
+    public static Confefeger.Confefeg<Float> hpBarOffset;
+    public static Confefeger.Confefeg<Float> hpBarOffsetDeg;
+    public static Confefeger.Confefeg<Float> hpBarPitchPlayer;
+    public static Confefeger.Confefeg<Float> hpBarStartHue;
+    public static Confefeger.Confefeg<Float> hpBarEndHue;
+
+    public static Confefeger.Confefeg<Integer> hpBarOutsideColor;
+
+    //Hunger Bar
+    public static Confefeger.Confefeg<Integer> HungerBarWarningColor;
+    public static Confefeger.Confefeg<Integer> HungerBarSaturationColor;
+    public static Confefeger.Confefeg<Double> HungerBarHungerStartHue;
+    public static Confefeger.Confefeg<Double> HungerBarHungerEndHue;
+
+    //NPC Indicator
+    public static Confefeger.Confefeg<Integer> npcIndicatorAggresiveColor;
+    public static Confefeger.Confefeg<Integer> npcIndicatorHostileColor;
+    public static Confefeger.Confefeg<Integer> npcIndicatorPassiveColor;
+    public static Confefeger.Confefeg<Integer> npcIndicatorPlayerColor;
+
+    //Effect Indicator
+    public static Confefeger.Confefeg<Float> effectIndicatorBaseSize;
+    public static Confefeger.Confefeg<Float> effectIndicatorIconSize;
+    public static Confefeger.Confefeg<Integer> effectIndicatorHarmfulColor;
+    public static Confefeger.Confefeg<Integer> effectIndicatorNeutralColor;
+    public static Confefeger.Confefeg<Integer> effectIndicatorBeneficialColor;
+
     public static void init()
     {
         buttonColor = confefeger
                 .build( "buttonColor" )
-                .category( "GUI" )
+                .category( "gui.buttons" )
                 .side( Confefeger.Side.LOCAL )
                 .submit( 0xffffff, 0, Integer.MAX_VALUE );
         buttonLockedColor = confefeger
                 .build( "buttonLockedColor" )
-                .category( "GUI" )
+                .category( "gui.buttons" )
                 .side( Confefeger.Side.LOCAL )
                 .submit( 0xaa5555, 0, Integer.MAX_VALUE );
         buttonHoverColor = confefeger
                 .build( "buttonHoverColor" )
-                .category( "GUI" )
+                .category( "gui.buttons" )
                 .side( Confefeger.Side.LOCAL )
                 .submit( 0x00ff00, 0, Integer.MAX_VALUE );
         buttonActiveColor = confefeger
                 .build( "buttonActiveColor" )
-                .category( "GUI" )
+                .category( "gui.buttons" )
                 .side( Confefeger.Side.LOCAL )
                 .submit( 0xff22ff, 0, Integer.MAX_VALUE );
         textColor = confefeger
                 .build( "textColor" )
-                .category( "GUI" )
+                .category( "gui.buttons" )
                 .side( Confefeger.Side.LOCAL )
                 .submit( 0xdddddd, 0, Integer.MAX_VALUE );
         iconColor = confefeger
                 .build( "iconColor" )
-                .category( "GUI" )
+                .category( "gui.buttons" )
                 .side( Confefeger.Side.LOCAL )
                 .submit( 0xeeeeee, 0, Integer.MAX_VALUE );
         iconBaseColor = confefeger
                 .build( "iconBaseColor" )
-                .category( "GUI" )
+                .category( "gui.buttons" )
                 .side( Confefeger.Side.LOCAL )
                 .submit( 0x8d8d8d, 0, Integer.MAX_VALUE );
         iconHoverColor = confefeger
                 .build( "iconHoverColor" )
-                .category( "GUI" )
+                .category( "gui.buttons" )
                 .side( Confefeger.Side.LOCAL )
                 .submit( 0xffffff, 0, Integer.MAX_VALUE );
+        hpBarGainIndicatorColor = confefeger
+                .build( "hpBarGainIndicatorColor" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0xffffff, 0, Integer.MAX_VALUE );
+        hpBarLossIndicatorColor = confefeger
+                .build( "hpBarLossIndicatorColor" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0xff0000, 0, Integer.MAX_VALUE );
+        HungerBarWarningColor = confefeger
+                .build( "HungerBarWarningColor" )
+                .category( "gui.hungerBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0xff0000, 0, Integer.MAX_VALUE );
+        HungerBarSaturationColor = confefeger
+                .build( "HungerBarSaturationColor" )
+                .category( "gui.hungerBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0xffff00, 0, Integer.MAX_VALUE );
+        npcIndicatorAggresiveColor = confefeger
+                .build( "npcIndicatorAggresiveColor" )
+                .category( "gui.npcIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0xff0000, 0, Integer.MAX_VALUE );
+        npcIndicatorHostileColor = confefeger
+                .build( "npcIndicatorHostileColor" )
+                .category( "gui.npcIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0xffaa00, 0, Integer.MAX_VALUE );
+        npcIndicatorPassiveColor = confefeger
+                .build( "npcIndicatorPassiveColor" )
+                .category( "gui.npcIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0x00ff00, 0, Integer.MAX_VALUE );
+        npcIndicatorPlayerColor = confefeger
+                .build( "npcIndicatorPlayerColor" )
+                .category( "gui.npcIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0x0000ff, 0, Integer.MAX_VALUE );
+        hpBarScalePlayer = confefeger
+                .build( "hpBarScalePlayer" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0.3f, 0, Float.MAX_VALUE );
+        hpBarScaleOthers = confefeger
+                .build( "hpBarScaleOthers" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 1, 0, Float.MAX_VALUE );
+        hpBarOffset = confefeger
+                .build( "hpBarOffset" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 1.2f, 0, 15.23f );
+        hpBarPolyCount = confefeger
+                .build( "hpBarPolyCount" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 32, 1, 1024 );
+        hpBarOffsetDeg = confefeger
+                .build( "hpBarOffsetDeg" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( -30f, -180f, 180f );
+        hpBarPitchPlayer = confefeger
+                .build( "hpBarPitchPlayer" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( -25f, -180f, 180f );
+        hpBarStartHue = confefeger
+                .build( "hpBarStartHue" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 240f, 0, 360 );
+        hpBarEndHue = confefeger
+                .build( "hpBarEndHue" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 360f, 0, 360 );
+        hpBarOutsideColor = confefeger
+                .build( "hpBarOutsideColor" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0x777777, 0, Integer.MAX_VALUE );
+        renderDistance = confefeger
+                .build( "renderDistance" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 150, 5, 8192 );
+        HungerBarHungerStartHue = confefeger
+                .build( "HungerBarHungerStartHue" )
+                .category( "gui.hungerBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 320d, 0, 360 );
+        HungerBarHungerEndHue = confefeger
+                .build( "HungerBarHungerEndHue" )
+                .category( "gui.hungerBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 360d, 0, 360 );
+        effectIndicatorBaseSize = confefeger
+                .build( "effectIndicatorBaseSize" )
+                .category( "gui.effectIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 1f, 0, 15.23f );
+        effectIndicatorIconSize = confefeger
+                .build( "effectIndicatorIconSize" )
+                .category( "gui.effectIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0.8f, 0, 15.23f );
+        effectIndicatorHarmfulColor = confefeger
+                .build( "effectIndicatorHarmfulColor" )
+                .category( "gui.npcIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0xcc0000, 0, Integer.MAX_VALUE );
+        effectIndicatorNeutralColor = confefeger
+                .build( "effectIndicatorNeutralColor" )
+                .category( "gui.npcIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0xcccccc, 0, Integer.MAX_VALUE );
+        effectIndicatorBeneficialColor = confefeger
+                .build( "effectIndicatorBeneficialColor" )
+                .category( "gui.npcIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( 0x00cc00, 0, Integer.MAX_VALUE );
     }
 }

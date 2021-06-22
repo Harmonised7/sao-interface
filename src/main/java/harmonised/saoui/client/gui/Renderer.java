@@ -3,11 +3,11 @@ package harmonised.saoui.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import harmonised.saoui.config.SaouiConfefeg;
 import harmonised.saoui.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.*;
@@ -22,12 +22,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
-import net.minecraft.util.Direction;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.ITextComponent;
@@ -50,14 +48,15 @@ public class Renderer
     private static float w, h, offset, scale, polyDegRange, degOffset, polyDegStep, livingEntityWidth;
 
     //HP Bar
-    private static final int polyCount = 64;
     private static final int fullBarWidth = 1024;
     private static final int barHeight = 160;
     private static final int barElements = 4;
-    private static final float polyWidth = fullBarWidth/(float)polyCount;
-    private static final int renderDistance = 128;
     private static final int outsideWallWidth = 2;
-    private static final float playerPitch = -25;
+
+    private static float hpBarPitchPlayer;
+    private static int hpBarPolyCount;
+    private static float hpBarPolyWidth;
+    private static int renderDistance;
 
     //Indicator
     private static int indicatorWidth = 128;
@@ -65,10 +64,8 @@ public class Renderer
     public static Set<Integer> attackers = new HashSet<>();
     public static Set<Integer> invisibles = new HashSet<>();
 
-    //Status Indicator
-    private static int statusIndicatorSize = 128;
-    private static float statusIndicatorBaseSize = 1f;
-    private static float statusIndicatorIconSize = 0.8f;
+    //Effect Indicator
+    private static int effectIndicatorSize = 128;
     private static float indicatorDegs;
 
     @SubscribeEvent
@@ -121,6 +118,11 @@ public class Renderer
         stack.push();
         PlayerEntity player = mc.player;
 
+        hpBarPolyCount = SaouiConfefeg.hpBarPolyCount.get();
+        hpBarPitchPlayer = SaouiConfefeg.hpBarPitchPlayer.get();
+        renderDistance = SaouiConfefeg.renderDistance.get();
+        hpBarPolyWidth = fullBarWidth/(float) hpBarPolyCount;
+
         if( !hpBars.containsKey( livingEntity ) || hpBars.get( livingEntity ).getLivingEntity() != livingEntity )
             hpBars.put( livingEntity, new HPBar( livingEntity ) );
         HPBar hpBar = hpBars.get( livingEntity );
@@ -136,27 +138,26 @@ public class Renderer
         if( isPlayer )
         {
 //            RenderSystem.disableDepthTest();
-            scale = 0.3f;
+            scale = SaouiConfefeg.hpBarScalePlayer.get();
         }
         else
         {
-            scale = 1;
+            scale = SaouiConfefeg.hpBarScaleOthers.get();
         }
 
         stack.rotate( Vector3f.YP.rotationDegrees( hpBar.getYRot() ) );    //Vertical Rotation
-        stack.rotate( Vector3f.XP.rotationDegrees( hpBar.getXRot() + (isPlayer ? playerPitch : 0) ) ); //Horizontal Rotation
+        stack.rotate( Vector3f.XP.rotationDegrees( hpBar.getXRot() + (isPlayer ? hpBarPitchPlayer : 0) ) ); //Horizontal Rotation
         float maxHp = livingEntity.getMaxHealth();
         float currHp = livingEntity.getHealth();
         float hpRatio = Math.min( 1, currHp / maxHp );
         float hpBarHpRatio = hpBar.getHpPos();
 
         polyDegRange      = ( Math.max( 20, Math.min( 270, 60 * maxHp * 0.1f ) ) ) * scale;
-        degOffset         = 180 - polyDegRange/2 - 30;
-        polyDegStep       = polyDegRange / polyCount;
+        degOffset         = 180 - polyDegRange/2 + SaouiConfefeg.hpBarOffsetDeg.get();
+        polyDegStep       = polyDegRange / hpBarPolyCount;
         livingEntityWidth = livingEntity.getWidth();
-        offset            = livingEntityWidth * 1.2f;
-        statusIndicatorBaseSize = 1;
-        indicatorDegs = (float) Math.atan( 256/offset ) * 4f * statusIndicatorBaseSize;
+        offset            = livingEntityWidth * SaouiConfefeg.hpBarOffset.get();
+        indicatorDegs = (float) Math.atan( 256/offset ) * 4f * SaouiConfefeg.effectIndicatorBaseSize.get();
         w = (float) ( 2*offset*Math.tan( Math.toRadians( polyDegStep/2 ) ) );
         h = livingEntity.getHeight() * 0.1f * scale;
 
@@ -186,12 +187,12 @@ public class Renderer
         mc.getTextureManager().bindTexture( Icons.HP_BAR );
 
         //Draw bar outside
-        for( int i = 0; i < polyCount; i++ )
+        for(int i = 0; i < hpBarPolyCount; i++ )
         {
             stack.push();
             stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
             stack.translate( -w/2f, -h/2f - 0.1f, offset );
-            mirrorBlitColor( stack, 0, w, 0, h, 0, polyWidth, barHeight, polyWidth*i, isPlayer ? barHeight : 0, fullBarWidth, barHeight*barElements, 0x777777, 255 );
+            mirrorBlitColor( stack, 0, w, 0, h, 0, hpBarPolyWidth, barHeight, hpBarPolyWidth *i, isPlayer ? barHeight : 0, fullBarWidth, barHeight*barElements, SaouiConfefeg.hpBarOutsideColor.get(), 255 );
             stack.pop();
         }
 
@@ -202,16 +203,16 @@ public class Renderer
         float tempHpBarHpRatio = hpLoss ? hpRatio : hpBarHpRatio;
 
         //Draw bar inside
-        for( int i = 0; i < polyCount; i++ )
+        for(int i = 0; i < hpBarPolyCount; i++ )
         {
-            drawnRatio = i / (float) polyCount;
-            nextDrawRatio = (i+1) / (float) polyCount;
+            drawnRatio = i / (float) hpBarPolyCount;
+            nextDrawRatio = (i+1) / (float) hpBarPolyCount;
             if( tempHpBarHpRatio < nextDrawRatio )
                 maxPolyU = (float) Util.map( tempHpBarHpRatio, drawnRatio, nextDrawRatio, 0, 1 );
             stack.push();
             stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
             stack.translate( -w/2f, -h/2f - 0.1f, offset );
-            mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, barHeight, polyWidth*i + polyWidth*minPolyU, barHeight*2, fullBarWidth, barHeight*barElements, Util.hueToRGB( (float) Util.map( hpBarHpRatio, 0, 1, 360, 240 ), 1, 1 ), 200 );
+            mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*2, fullBarWidth, barHeight*barElements, Util.hueToRGB( (float) Util.map( hpBarHpRatio, 0, 1, SaouiConfefeg.hpBarEndHue.get(), SaouiConfefeg.hpBarStartHue.get() ), 1, 1 ), 200 );
             stack.pop();
             if( maxPolyU < 1 )
                 break;
@@ -223,13 +224,13 @@ public class Renderer
         //Draw Gain/Loss Indicator
         if( hpBarHpRatio < hpRatio )
         {
-            int firstIndicatorPoly = (int) ( polyCount*hpBarHpRatio );
-            int lastIndicatorPoly = (int) ( polyCount*hpRatio )+1;
+            int firstIndicatorPoly = (int) ( hpBarPolyCount *hpBarHpRatio );
+            int lastIndicatorPoly = (int) ( hpBarPolyCount *hpRatio )+1;
             //Gain
             for( int i = firstIndicatorPoly; i < lastIndicatorPoly; i++ )
             {
-                drawnRatio = i / (float) polyCount;
-                nextDrawRatio = (i+1) / (float) polyCount;
+                drawnRatio = i / (float) hpBarPolyCount;
+                nextDrawRatio = (i+1) / (float) hpBarPolyCount;
 
                 if( i+1 == lastIndicatorPoly )
                     maxPolyU = (float) Util.map( hpRatio, drawnRatio, nextDrawRatio, 0, 1 );
@@ -237,20 +238,20 @@ public class Renderer
                 stack.push();
                 stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, barHeight, polyWidth*i + polyWidth*minPolyU, barHeight*2, fullBarWidth, barHeight*barElements, 0xffffff, 200 );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*2, fullBarWidth, barHeight*barElements, SaouiConfefeg.hpBarGainIndicatorColor.get(), 200 );
                 minPolyU = 0;
                 stack.pop();
             }
         }
         else if( hpRatio < hpBarHpRatio )
         {
-            int firstIndicatorPoly = (int) ( polyCount*hpRatio );
-            int lastIndicatorPoly = (int) ( polyCount*hpBarHpRatio )+1;
+            int firstIndicatorPoly = (int) ( hpBarPolyCount *hpRatio );
+            int lastIndicatorPoly = (int) ( hpBarPolyCount *hpBarHpRatio )+1;
             //Loss
             for( int i = firstIndicatorPoly; i < lastIndicatorPoly; i++ )
             {
-                drawnRatio = i / (float) polyCount;
-                nextDrawRatio = (i+1) / (float) polyCount;
+                drawnRatio = i / (float) hpBarPolyCount;
+                nextDrawRatio = (i+1) / (float) hpBarPolyCount;
 
                 if( i+1 == lastIndicatorPoly )
                     maxPolyU = (float) Util.map( hpBarHpRatio, drawnRatio, nextDrawRatio, 0, 1 );
@@ -258,7 +259,7 @@ public class Renderer
                 stack.push();
                 stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, barHeight, polyWidth*i + polyWidth*minPolyU, barHeight*2, fullBarWidth, barHeight*barElements, 0xff0000, 200 );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*2, fullBarWidth, barHeight*barElements, SaouiConfefeg.hpBarLossIndicatorColor.get(), 200 );
                 minPolyU = 0;
                 stack.pop();
             }
@@ -283,12 +284,12 @@ public class Renderer
             //Draw Warning
             if( hungerRatio <= 0.1 && ( System.currentTimeMillis() / 1000 ) % 2 == 0 )
             {
-                for( int i = 0; i < polyCount; i++ )
+                for(int i = 0; i < hpBarPolyCount; i++ )
                 {
                     stack.push();
                     stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
                     stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                    mirrorBlitColor( stack, 0, w, 0, h, 0, polyWidth, barHeight, polyWidth*i, barHeight*3, fullBarWidth, barHeight*barElements, 0xff0000, 255 );
+                    mirrorBlitColor( stack, 0, w, 0, h, 0, hpBarPolyWidth, barHeight, hpBarPolyWidth *i, barHeight*3, fullBarWidth, barHeight*barElements, SaouiConfefeg.HungerBarWarningColor.get(), 255 );
                     stack.pop();
                 }
             }
@@ -297,16 +298,16 @@ public class Renderer
             maxPolyU = 1;
 
             //Draw Saturation
-            for( int i = 0; i < polyCount; i++ )
+            for(int i = 0; i < hpBarPolyCount; i++ )
             {
-                drawnRatio = i / (float) polyCount;
-                nextDrawRatio = (i+1) / (float) polyCount;
+                drawnRatio = i / (float) hpBarPolyCount;
+                nextDrawRatio = (i+1) / (float) hpBarPolyCount;
                 if( saturationRatio < nextDrawRatio )
                     maxPolyU = (float) Util.map( saturationRatio, drawnRatio, nextDrawRatio, 0, 1 );
                 stack.push();
                 stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, barHeight, polyWidth*i + polyWidth*minPolyU, barHeight*3, fullBarWidth, barHeight*barElements, 0xffff00, 200 );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*3, fullBarWidth, barHeight*barElements, SaouiConfefeg.HungerBarSaturationColor.get(), 200 );
                 stack.pop();
                 if( maxPolyU < 1 )
                     break;
@@ -317,12 +318,12 @@ public class Renderer
 
             //Draw Hunger
 
-            int firstIndicatorPoly = (int) ( polyCount*saturationRatio );
-            int lastIndicatorPoly = (int) ( polyCount*hungerRatio )+1;
+            int firstIndicatorPoly = (int) ( hpBarPolyCount *saturationRatio );
+            int lastIndicatorPoly = (int) ( hpBarPolyCount *hungerRatio )+1;
             for( int i = firstIndicatorPoly; i < lastIndicatorPoly; i++ )
             {
-                drawnRatio = i / (float) polyCount;
-                nextDrawRatio = (i+1) / (float) polyCount;
+                drawnRatio = i / (float) hpBarPolyCount;
+                nextDrawRatio = (i+1) / (float) hpBarPolyCount;
 
                 if( i+1 == lastIndicatorPoly )
                     maxPolyU = (float) Util.map( hungerRatio, drawnRatio, nextDrawRatio, 0, 1 );
@@ -330,7 +331,7 @@ public class Renderer
                 stack.push();
                 stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, polyWidth*maxPolyU - polyWidth*minPolyU, barHeight, polyWidth*i + polyWidth*minPolyU, barHeight*3, fullBarWidth, barHeight*barElements, Util.hueToRGB( (float) Util.map( hungerRatio, 0, 0.5, 360, 320 ), 1f, 1f ), 200 );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*3, fullBarWidth, barHeight*barElements, Util.hueToRGB( (float) Util.map( hungerRatio, 0, 0.5, SaouiConfefeg.HungerBarHungerEndHue.get(), SaouiConfefeg.HungerBarHungerStartHue.get() ), 1f, 1f ), 200 );
                 minPolyU = 0;
                 stack.pop();
             }
@@ -354,7 +355,7 @@ public class Renderer
     public static void drawEffectBase( MatrixStack stack, List<EffectInstance> entityEffects )
     {
         int i = 0;
-        float baseSize = statusIndicatorBaseSize*0.09f;
+        float baseSize = SaouiConfefeg.effectIndicatorBaseSize.get()*0.09f;
         for( EffectInstance effectInstance : entityEffects )
         {
             int col = i % 10;
@@ -364,24 +365,24 @@ public class Renderer
 
             stack.push();
             stack.rotate( Vector3f.YP.rotationDegrees( degOffset + polyDegRange + col * indicatorDegs - row*2 ) );
-            stack.translate( -w/2f, -h/2f - 0.11f + row*statusIndicatorBaseSize*0.08f, offset );
+            stack.translate( -w/2f, -h/2f - 0.11f + row*SaouiConfefeg.effectIndicatorBaseSize.get()*0.08f, offset );
             int color;
             switch( effectInstance.getPotion().getEffectType() )
             {
                 case HARMFUL:
-                    color = 0xcc0000;
+                    color = SaouiConfefeg.effectIndicatorHarmfulColor.get();
                     break;
 
                 case BENEFICIAL:
-                    color = 0x00cc00;
+                    color = SaouiConfefeg.effectIndicatorBeneficialColor.get();
                     break;
 
                 case NEUTRAL:
                 default:
-                    color = 0xcccccc;
+                    color = SaouiConfefeg.effectIndicatorNeutralColor.get();
                     break;
             }
-            mirrorBlitColor( stack, 0, baseSize, 0, baseSize, 0, statusIndicatorSize, statusIndicatorSize, 0, 0, statusIndicatorSize, statusIndicatorSize, color, 255 );
+            mirrorBlitColor( stack, 0, baseSize, 0, baseSize, 0, effectIndicatorSize, effectIndicatorSize, 0, 0, effectIndicatorSize, effectIndicatorSize, color, 255 );
             stack.pop();
 
             i++;
@@ -390,8 +391,8 @@ public class Renderer
 
     public static void drawEffectIcons( MatrixStack stack, List<EffectInstance> entityEffects )
     {
-        float baseSize = statusIndicatorBaseSize*0.09f;
-        float iconSize = baseSize*statusIndicatorIconSize;
+        float baseSize = SaouiConfefeg.effectIndicatorBaseSize.get()*0.09f;
+        float iconSize = baseSize*SaouiConfefeg.effectIndicatorIconSize.get();
         float xy1 = baseSize - iconSize;
         int i = 0;
         for( EffectInstance effectInstance : entityEffects )
@@ -405,7 +406,7 @@ public class Renderer
             PotionSpriteUploader potionspriteuploader = mc.getPotionSpriteUploader();
             TextureAtlasSprite texAtlasSprite = potionspriteuploader.getSprite( effect );
             mc.getTextureManager().bindTexture( texAtlasSprite.getAtlasTexture().getTextureLocation() );
-            stack.translate( -w/2f, -h/2f - 0.11f + row*statusIndicatorBaseSize*0.08f, offset );
+            stack.translate( -w/2f, -h/2f - 0.11f + row*SaouiConfefeg.effectIndicatorBaseSize.get()*0.08f, offset );
             stack.translate( 0, 0, -0.001f );
             mirrorBlit( stack.getLast().getMatrix(), xy1, iconSize, xy1, iconSize, 0, texAtlasSprite.getMinU(), texAtlasSprite.getMaxU(), texAtlasSprite.getMinV(), texAtlasSprite.getMaxV() );
             stack.translate( 0, 0, 0.002f );
@@ -427,7 +428,7 @@ public class Renderer
             stack.push();
             stack.rotate( Vector3f.YP.rotationDegrees( degOffset + polyDegRange + ( col * indicatorDegs + indicatorDegs*0.4f ) - row*2 ) );
             int color = i%2 == 0 ? 0xffffff : 0xcccccc;
-            stack.translate( -w/2f, -h/2f - 0.075f + (row+1)*statusIndicatorBaseSize*0.065f, offset + 0.01f );
+            stack.translate( -w/2f, -h/2f - 0.075f + (row+1)*SaouiConfefeg.effectIndicatorBaseSize.get()*0.065f, offset + 0.01f );
             stack.translate( 0, 0, -0.001f );
             stack.scale( 1/400f, 1/400f, 1/400f );
             Renderer.drawCenteredString( stack, mc.fontRenderer, new StringTextComponent( "" + ( Util.toStamp( effectInstance.getDuration() / 20f ) ) ), 0, 0, color );
@@ -447,16 +448,16 @@ public class Renderer
         stack.push();
         int color = 0xfffff;
         if( livingEntity instanceof AnimalEntity )
-            color = 0x00ff00;
+            color = SaouiConfefeg.npcIndicatorPassiveColor.get();
         else if( livingEntity instanceof MobEntity )
         {
             if( attackers.contains( livingEntity.getEntityId() ) )
-                color = 0xff0000;
+                color = SaouiConfefeg.npcIndicatorHostileColor.get();
             else
-                color = 0xffaa00;
+                color = SaouiConfefeg.npcIndicatorAggresiveColor.get();
         }
         else if( livingEntity instanceof PlayerEntity )
-            color = 0x0000ff;
+            color = SaouiConfefeg.npcIndicatorPlayerColor.get();
         float scale = livingEntity.getRenderScale()*0.1523f;
         float height = scale*2;
         stack.translate( 0, -livingEntity.getHeight()*0.3251f - height, 0 );

@@ -368,7 +368,6 @@ public class Confefeger
         {
             this.value = value;
             this.localValue = value;
-            confefeger.saveConfefegs();
 //            if( this.side == Side.COMMON )
 //            {
                 //Send packet to set config from to either side?
