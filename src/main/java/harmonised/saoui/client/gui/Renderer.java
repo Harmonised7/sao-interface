@@ -521,11 +521,6 @@ public class Renderer
         mirrorBlitColor(matrixStack.getLast().getMatrix(), x1, x2, y1, y2, blitOffset, (uOffset + 0.0F) / textureWidth, (uOffset + uWidth) / textureWidth, (vOffset + 0.0F) / textureHeight, (vOffset + vHeight) / textureHeight, color, alpha );
     }
 
-    public static void mirrorBlitColorHorizontalFlip( MatrixStack matrixStack, float x1, float x2, float y1, float y2, float blitOffset, float uWidth, float vHeight, float uOffset, float vOffset, float textureWidth, float textureHeight, int color, int alpha )
-    {
-        mirrorBlitColor(matrixStack.getLast().getMatrix(), x1, x2, y1, y2, blitOffset, 1 - ( (uOffset + 0.0F) / textureWidth ), 1 - ( (uOffset + uWidth) / textureWidth ), (vOffset + 0.0F) / textureHeight, (vOffset + vHeight) / textureHeight, color, alpha );
-    }
-
     public static void mirrorBlitColor( Matrix4f matrix, float x1, float x2, float y1, float y2, float blitOffset, float minU, float maxU, float minV, float maxV, int color, int alpha )
     {
         BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
@@ -551,6 +546,43 @@ public class Renderer
 
         RenderSystem.enableAlphaTest();
         WorldVertexBufferUploader.draw( bufferbuilder );
+    }
+
+    public static void blitColor( MatrixStack matrixStack, float x1, float x2, float y1, float y2, float blitOffset, float uWidth, float vHeight, float uOffset, float vOffset, float textureWidth, float textureHeight, int color, int alpha )
+    {
+        blitColor(matrixStack.getLast().getMatrix(), x1, x2, y1, y2, blitOffset, (uOffset + 0.0F) / textureWidth, (uOffset + uWidth) / textureWidth, (vOffset + 0.0F) / textureHeight, (vOffset + vHeight) / textureHeight, color, alpha );
+    }
+
+    public static void blitColor( Matrix4f matrix, float x1, float x2, float y1, float y2, float blitOffset, float minU, float maxU, float minV, float maxV, int color, int alpha )
+    {
+        BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
+
+        int red = color >> 16;
+        int green = ( color & 0x00ff00 ) >> 8;
+        int blue = color & 0x0000ff;
+
+        bufferbuilder.begin( 7, DefaultVertexFormats.POSITION_COLOR_TEX );
+        bufferbuilder.pos( matrix, x1, y2, blitOffset ).color( red, green, blue, alpha ).tex( minU, maxV ).endVertex();
+        bufferbuilder.pos( matrix, x2, y2, blitOffset ).color( red, green, blue, alpha ).tex( maxU, maxV ).endVertex();
+        bufferbuilder.pos( matrix, x2, y1, blitOffset ).color( red, green, blue, alpha ).tex( maxU, minV ).endVertex();
+        bufferbuilder.pos( matrix, x1, y1, blitOffset ).color( red, green, blue, alpha ).tex( minU, minV ).endVertex();
+        bufferbuilder.finishDrawing();
+        WorldVertexBufferUploader.draw( bufferbuilder);
+
+//        bufferbuilder.begin( 7, DefaultVertexFormats.POSITION_COLOR_TEX );
+//        bufferbuilder.pos( matrix, x1, y1, blitOffset ).color( red, green, blue, alpha ).tex( minU, minV ).endVertex();
+//        bufferbuilder.pos( matrix, x2, y1, blitOffset ).color( red, green, blue, alpha ).tex( maxU, minV ).endVertex();
+//        bufferbuilder.pos( matrix, x2, y2, blitOffset ).color( red, green, blue, alpha ).tex( maxU, maxV ).endVertex();
+//        bufferbuilder.pos( matrix, x1, y2, blitOffset ).color( red, green, blue, alpha ).tex( minU, maxV ).endVertex();
+//        bufferbuilder.finishDrawing();
+//
+//        RenderSystem.enableAlphaTest();
+//        WorldVertexBufferUploader.draw( bufferbuilder );
+    }
+
+    public static void mirrorBlitColorHorizontalFlip( MatrixStack matrixStack, float x1, float x2, float y1, float y2, float blitOffset, float uWidth, float vHeight, float uOffset, float vOffset, float textureWidth, float textureHeight, int color, int alpha )
+    {
+        mirrorBlitColor(matrixStack.getLast().getMatrix(), x1, x2, y1, y2, blitOffset, 1 - ( (uOffset + 0.0F) / textureWidth ), 1 - ( (uOffset + uWidth) / textureWidth ), (vOffset + 0.0F) / textureHeight, (vOffset + vHeight) / textureHeight, color, alpha );
     }
 
     public static void drawCenteredString(MatrixStack stack, FontRenderer font, ITextComponent msg, float x, float y, int color )

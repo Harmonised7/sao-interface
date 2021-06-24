@@ -139,12 +139,12 @@ public class SaouiConfefeg
                 .build( "hpBarScalePlayer" )
                 .category( "gui.hpBar" )
                 .side( Confefeger.Side.LOCAL )
-                .submit( 0.3f, 0, Float.MAX_VALUE );
+                .submit( 0.3f, 0, 15.23f );
         hpBarScaleOthers = confefeger
                 .build( "hpBarScaleOthers" )
                 .category( "gui.hpBar" )
                 .side( Confefeger.Side.LOCAL )
-                .submit( 1, 0, Float.MAX_VALUE );
+                .submit( 1, 0, 15.23f );
         hpBarOffset = confefeger
                 .build( "hpBarOffset" )
                 .category( "gui.hpBar" )

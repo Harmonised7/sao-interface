@@ -106,6 +106,16 @@ public class Util
         return ( (input - inLow) / (inHigh - inLow) ) * (outHigh - outLow) + outLow;
     }
 
+    public static double mapCapped( double input, double inLow, double inHigh, double outLow, double outHigh )
+    {
+        if( input < inLow )
+            input = inLow;
+        if( input > inHigh )
+            input = inHigh;
+
+        return map( input, inLow, inHigh, outLow, outHigh );
+    }
+
     public static double getDistance( int x1, int y1, int x2, int y2 )
     {
         return Math.sqrt( Math.pow( x2 - x1, 2 ) + Math.pow( y2 - y1, 2 ) );

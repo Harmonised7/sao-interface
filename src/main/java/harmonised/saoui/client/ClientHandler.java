@@ -51,6 +51,7 @@ public class ClientHandler
             ClientWorld world = (ClientWorld) player.world;
             Vector3d pos = player.getPositionVec();
 //            Minecraft.getInstance().particleEngine.add( new SaoParticle( world, pos.x, pos.y, pos.z ) );
+            SAOScreen.initBoxes();
             Minecraft.getInstance().displayGuiScreen( new SAOScreen( new TranslationTextComponent( "" ) ) );
         }
         wasShowSaoInterface = SHOW_SAO_INTERFACE.isKeyDown();

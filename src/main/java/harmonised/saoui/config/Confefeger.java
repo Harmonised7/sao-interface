@@ -294,10 +294,10 @@ public class Confefeger
             return new Confefeg<>( confefeger, name, description, category, side, value, min, max );
         }
 
-        public Confefeg<Long> submit( long value, long min, long max )
-        {
-            return new Confefeg<>( confefeger, name, description, category, side, value, min, max );
-        }
+//        public Confefeg<Long> submit( long value, long min, long max )
+//        {
+//            return new Confefeg<>( confefeger, name, description, category, side, value, min, max );
+//        }
 
         public Confefeg<Integer> submit( int value, int min, int max )
         {
@@ -351,6 +351,16 @@ public class Confefeger
             this.min = value;
             this.max = value;
             confefeger.confefegs.put( name, this );
+        }
+
+        public T getMin()
+        {
+            return min;
+        }
+
+        public T getMax()
+        {
+            return max;
         }
 
         @Override

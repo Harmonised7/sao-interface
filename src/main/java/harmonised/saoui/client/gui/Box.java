@@ -2,6 +2,7 @@ package harmonised.saoui.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import harmonised.saoui.util.Reference;
+import harmonised.saoui.util.Util;
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.widget.Widget;
@@ -19,7 +20,6 @@ public class Box extends Widget
 
     public float x, y;
     public int maxDisplayButtons = 7, fadeFrom = 1;
-    private final int buttonHeight = 16;
     private int buttonWidth = 16;
     public final int buttonGap = 4;
     public int scrollPosGoal = 0;
@@ -54,7 +54,13 @@ public class Box extends Widget
     public int getHeightRealms()
     {
         int buttonCount = Math.min( maxDisplayButtons, buttons.size() );
-        return buttonCount*getButtonHeight() + ( Math.max( 0, buttonCount-1 ) )*buttonGap;
+        int height = 0;
+        for( int i = 0; i < buttonCount; i++ )
+        {
+            height += buttons.get( i ).getHeightRealms();
+        }
+        height += ( Math.max( 0, buttonCount-1 ) )*buttonGap;
+        return height;
     }
 
     @Override
@@ -71,8 +77,9 @@ public class Box extends Widget
             int buttonCount = Math.min( maxDisplayButtons, buttons.size() );
             int midButton = buttonCount/2;
             boolean isEven = buttonCount%2 == 0;
-            int fadeInterval = 80;
-            Renderer.drawCenteredString( stack, Minecraft.getInstance().fontRenderer, new StringTextComponent( "" + name ), x + getWidth()/2f, y - 10, 0xffffff );
+            int fadeInterval = Math.max( 25, Math.min( 200, 560/maxDisplayButtons ) );
+            if( !Util.isProduction() )
+                Renderer.drawCenteredString( stack, Minecraft.getInstance().fontRenderer, new StringTextComponent( "" + name ), x + getWidth()/2f, y - 10, 0xffffff );
             int fadeStep;
             for( int i = 0; i < buttonCount; i++ )
             {
@@ -83,14 +90,15 @@ public class Box extends Widget
                 if( i >= maxDisplayButtons )
                     break;
                 button.x = x;
-                button.y = y + (buttonHeight+buttonGap)*i;
+                button.y = y + (button.getHeightRealms()+buttonGap)*i;
                 int thisMidButton = midButton;
                 if( isEven && i < midButton )
                     thisMidButton--;
                 fadeStep = Math.abs( i - thisMidButton );
                 button.alpha = 255 - fadeInterval*fadeStep;
                 button.renderButton( stack, mouseX, mouseY, partialTicks );
-                Renderer.drawCenteredString( stack, Minecraft.getInstance().fontRenderer, new StringTextComponent( "" + buttonIndex ), button.x, button.y, 0xffffff );
+                if( !Util.isProduction() )
+                    Renderer.drawCenteredString( stack, Minecraft.getInstance().fontRenderer, new StringTextComponent( "" + buttonIndex ), button.x, button.y, 0xffffff );
             }
         }
         else
@@ -121,11 +129,6 @@ public class Box extends Widget
         {
             listButton.mouseMoved( mouseX, mouseY );
         }
-    }
-
-    public int getButtonHeight()
-    {
-        return buttonHeight;
     }
 
     public int getButtonWidth()
@@ -196,6 +199,12 @@ public class Box extends Widget
     public Box unlockScroll()
     {
         scrollLocked = false;
+        return this;
+    }
+
+    public Box setMaxDisplayButtons( int value )
+    {
+        this.maxDisplayButtons = Math.max( 1, value );
         return this;
     }
 }

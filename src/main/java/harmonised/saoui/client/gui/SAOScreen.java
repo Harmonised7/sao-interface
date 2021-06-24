@@ -42,7 +42,8 @@ import java.util.*;
 
 public class SAOScreen extends Screen
 {
-    private static boolean init = false;
+    private static boolean init = false, dirty = false;
+    public static long lastSave = System.currentTimeMillis();
     public static final List<Box> boxes = new ArrayList<>();
     public static Box extraBox = null, extraBoxParent = null;
     public static final Box partyBox = new Box( "party" ), partyMembersBox = new Box( "partyMembers" );
@@ -74,12 +75,12 @@ public class SAOScreen extends Screen
     @Override
     protected void init()
     {
-        initBoxes();
-        updatePositions( true );
         if( !init )
         {
+            initBoxes();
             init = true;
         }
+        updatePositions( true );
 //        children.addAll( boxes );
     }
 
@@ -212,6 +213,12 @@ public class SAOScreen extends Screen
                 button.renderTooltip( stack, mouseX, mouseY, partialTicks );
             }
         }
+//        renderTooltip( stack, new StringTextComponent( mouseX + " " + mouseY ), mouseX, mouseY );
+        if( dirty && System.currentTimeMillis() - lastSave > 1000 )
+        {
+            Confefeger.saveAllConfefegers();
+            dirty = false;
+        }
     }
 
     public static int getBoxPos( Box box )
@@ -265,10 +272,23 @@ public class SAOScreen extends Screen
     @Override
     public boolean mouseDragged( double mouseX, double mouseY, int button, double deltaX, double deltaY )
     {
-        SAOScreen.xOffset += deltaX;
-        SAOScreen.yOffset += deltaY;
-        SAOScreen.xOffset = Util.cap( SAOScreen.xOffset, -sr.getScaledWidth()/2D, sr.getScaledWidth()/2D );
-        SAOScreen.yOffset = Util.cap( SAOScreen.yOffset, -sr.getScaledHeight()/2D, sr.getScaledHeight()/2D );
+        if( button == 1 )
+        {
+            SAOScreen.xOffset += deltaX;
+            SAOScreen.yOffset += deltaY;
+            SAOScreen.xOffset = Util.cap( SAOScreen.xOffset, -sr.getScaledWidth()/2D, sr.getScaledWidth()/2D );
+            SAOScreen.yOffset = Util.cap( SAOScreen.yOffset, -sr.getScaledHeight()/2D, sr.getScaledHeight()/2D );
+        }
+        else
+        {
+            for( Box box : boxes )
+            {
+                for( ListButton listButton : box.buttons )
+                {
+                    listButton.mouseDragged( mouseX, mouseY, button, deltaX, deltaY );
+                }
+            }
+        }
         return super.mouseDragged( mouseX, mouseY, button, deltaX, deltaY );
     }
 
@@ -643,11 +663,11 @@ public class SAOScreen extends Screen
 
     private static Box getConfefegsBox( String boxKey, Set<Confefeger.Confefeg> confefegs )
     {
-        Box box = new Box( boxKey );
+        Box box = new Box( boxKey ).setMaxDisplayButtons( 13 );
 
         for( Confefeger.Confefeg confefeg : confefegs )
         {
-            box.addButton( new ConfigButton( box ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + "." + confefeg.name ) ).onPress( theButton ->
+            box.addButton( new ConfigButton( box, confefeg ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + "." + confefeg.name ) ).onPress( theButton ->
             {
             }));
         }
@@ -971,5 +991,10 @@ public class SAOScreen extends Screen
         }
 
 //        this.recipeBookPage.updateCollections(list1, p_193003_1_);
+    }
+
+    public static void markDirty()
+    {
+        dirty = true;
     }
 }

@@ -36,12 +36,12 @@ public class CircleButton extends ListButton
         else if( isActive() || isHovered() )
             backgroundColor = SaouiConfefeg.iconHoverColor.get();
 
-        Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, circleButtonSize, circleButtonSize, 0, 0, circleButtonSize, circleButtonSize, backgroundColor, alpha  );
+        Renderer.blitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, circleButtonSize, circleButtonSize, 0, 0, circleButtonSize, circleButtonSize, backgroundColor, alpha  );
 
         if( foreground != null )
         {
             mc.getTextureManager().bindTexture( foreground );
-            Renderer.mirrorBlitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, locked ? SaouiConfefeg.iconColor.get() : isHovered() ? SaouiConfefeg.iconHoverColor.get() : SaouiConfefeg.iconColor.get(), alpha  );
+            Renderer.blitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, locked ? SaouiConfefeg.iconColor.get() : isHovered() ? SaouiConfefeg.iconHoverColor.get() : SaouiConfefeg.iconColor.get(), alpha  );
         }
     }
 

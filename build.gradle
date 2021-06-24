@@ -18,7 +18,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: "com.wynprice.cursemaven"
 
-version = '1.16.5-1.5'
+version = '1.16.5-1.6'
 group = 'harmonised.saoui' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'saoui'
 
