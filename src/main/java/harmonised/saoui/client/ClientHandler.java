@@ -2,7 +2,7 @@ package harmonised.saoui.client;
 
 import harmonised.saoui.client.gui.Renderer;
 import harmonised.saoui.client.gui.SAOScreen;
-import harmonised.saoui.config.Confefeger;
+import harmonised.saoui.confefeg.Confefeger;
 import harmonised.saoui.util.Reference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.DirtMessageScreen;

@@ -3,7 +3,7 @@ package harmonised.saoui.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import harmonised.saoui.config.SaouiConfefeg;
+import harmonised.saoui.confefeg.SaouiConfefeg;
 import harmonised.saoui.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;

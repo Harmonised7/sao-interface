@@ -1,6 +1,6 @@
 package harmonised.saoui.network;
 
-import harmonised.saoui.config.Confefeger;
+import harmonised.saoui.confefeg.Confefeger;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;

@@ -307,4 +307,15 @@ public class Util
         int seconds = (int) input % 60;
         return (int) ( input / 60 ) + ":" + ( seconds > 9 ? "" : 0 ) + seconds;
     }
+
+    public static int multiplyAlphaColor( int alpha, int color )
+    {
+        int output = (int) ( (alpha/255f) * ( ( color & 0xff000000 ) >> 24 & 0xff ) );
+        return output;
+    }
+
+    public static String intToHexString( int number )
+    {
+        return String.format("0x%08X", number );
+    }
 }

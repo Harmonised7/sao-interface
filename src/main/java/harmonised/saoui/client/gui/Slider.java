@@ -12,15 +12,15 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 
-public class ListSlider extends Button
+public class Slider extends Button
 {
     public Minecraft mc = Minecraft.getInstance();
     public FontRenderer font = mc.fontRenderer;
     public float x, y;
     public double value, min, max;
-    public int buttonWidth = 4, alpha = 255;
+    public int buttonWidth = 4, buttonColor = 0xffff00ff, alpha = 255, decimals = -1;
 
-    public ListSlider( float x, float y, int width, int height, double value, double min, double max, ITextComponent title, IPressable pressedAction )
+    public Slider(float x, float y, int width, int height, double value, double min, double max, ITextComponent title, IPressable pressedAction )
     {
         super( (int) x, (int) y, width, height, title, pressedAction );
         this.x = x;
@@ -43,9 +43,9 @@ public class ListSlider extends Button
         mc.getTextureManager().bindTexture( Icons.RECTANGLE_BUTTON );
 
         float buttonX = getButtonX();
-        Renderer.blitColor( stack, buttonX, buttonX + buttonWidth, y, y + getHeightRealms(), 0, 128, 32, 0, 0, 128, 32, 0xff00ff, alpha );
-        Renderer.drawCenteredString( stack, font, getMessage(), x + width/2f, y, 0xffffff );
-        Renderer.drawCenteredString( stack, font, new StringTextComponent(DP.dpSoft( value ) ), x + width/2f, y + getHeightRealms()/2f, alpha << 24 | 0xffffff );
+        Renderer.blitColor( stack, x, x + width, y, y + height, 0, 128, 32, 0, 0, 128, 32, 0x666666, alpha );
+        Renderer.blitColor( stack, buttonX, buttonX + buttonWidth, y, y + getHeightRealms(), 0, 128, 32, 0, 0, 128, 32, buttonColor, Util.multiplyAlphaColor( alpha, buttonColor ) );
+        Renderer.drawCenteredString( stack, font, new StringTextComponent( decimals < 0 ? DP.dpSoft( value ) : DP.dpCustom( value, decimals ) ), x + width/2f, y + getHeightRealms()/2f, alpha << 24 | 0xffffff );
     }
     
     public float getButtonX()
@@ -68,7 +68,18 @@ public class ListSlider extends Button
             SAOScreen.markDirty();
             return true;
         }
-        else
-            return super.mouseDragged( mouseX, mouseY, button, dragX, dragY );
+        return false;
+    }
+
+    public Slider setButtonColor( int color )
+    {
+        buttonColor = color <= 0xffffff ? color | 0xff << 24 : color;
+        return this;
+    }
+
+    public Slider setDecimals( int decimals )
+    {
+        this.decimals = decimals;
+        return this;
     }
 }

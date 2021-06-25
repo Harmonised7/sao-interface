@@ -1,4 +1,4 @@
-package harmonised.saoui.config;
+package harmonised.saoui.confefeg;
 
 import harmonised.saoui.network.MessageConfefeg;
 import harmonised.saoui.network.NetworkHandler;
@@ -43,44 +43,44 @@ public class Confefeger
 
     public void saveConfefegs()
     {
-        String tomlConfig = getConfefegsAsToml();
+        String tomlConfefeg = getConfefegsAsToml();
 
-        File configFile = getConfigFile();
+        File confefegFile = getConfefegFile();
         try
         {
-            configFile.getParentFile().mkdir();
-            configFile.createNewFile();
+            confefegFile.getParentFile().mkdir();
+            confefegFile.createNewFile();
         }
         catch( IOException e )
         {
-            LOGGER.error( "Could not save " + Reference.MOD_ID + " Config!", configFile.getPath(), e );
+            LOGGER.error( "Could not save " + confefegName + " Confefeg!", confefegFile.getPath(), e );
         }
 
-        try( FileOutputStream outputStream = new FileOutputStream( configFile ) )
+        try( FileOutputStream outputStream = new FileOutputStream( confefegFile ) )
         {
-            System.out.println( "Writing " + Reference.MOD_ID + " Config to " + configFile.getPath() );
-            IOUtils.write( tomlConfig, outputStream );
+            System.out.println( "Writing " + Reference.MOD_ID + " Confefeg to " + confefegFile.getPath() );
+            IOUtils.write( tomlConfefeg, outputStream );
         }
         catch( IOException e )
         {
-            LOGGER.error( "Error writing " + Reference.MOD_ID + " Config file to " + configFile.getPath(), configFile.getPath(), e );
+            LOGGER.error( "Error writing " + Reference.MOD_ID + " Confefeg file to " + confefegFile.getPath(), confefegFile.getPath(), e );
         }
     }
 
     public void parseConfefegs()
     {
         parsedConfefeg.clear();
-        File configFile = getConfigFile();
-        if( !configFile.exists() )
+        File confefegFile = getConfefegFile();
+        if( !confefegFile.exists() )
             saveConfefegs();
         try
         (
-            FileInputStream inputStream = new FileInputStream( configFile );
+            FileInputStream inputStream = new FileInputStream( confefegFile );
             InputStreamReader inputStreamReader = new InputStreamReader( inputStream, StandardCharsets.UTF_8 );
             BufferedReader reader = new BufferedReader( inputStreamReader );
         )
         {
-            LOGGER.debug( "Reading " + configFile.getName(), configFile.getPath() );
+            LOGGER.debug( "Reading " + confefegFile.getName(), confefegFile.getPath() );
             for( String line : reader.lines().collect( Collectors.toList() ) )
             {
                 if( line.length() == 0 || line.charAt(0) == '#' )
@@ -96,7 +96,7 @@ public class Confefeger
         }
         catch( IOException e )
         {
-            LOGGER.error( "Error parsing Confefeg: " + configFile.getPath(), e );
+            LOGGER.error( "Error parsing Confefeg: " + confefegFile.getPath(), e );
         }
     }
 
@@ -130,7 +130,7 @@ public class Confefeger
         return stringBuilder.toString();
     }
 
-    public File getConfigFile()
+    public File getConfefegFile()
     {
         return FMLPaths.CONFIGDIR.get().resolve( confefegName + ".toml" ).toFile();
     }
@@ -253,6 +253,13 @@ public class Confefeger
         COMMON
     }
 
+    public enum ValueType
+    {
+        NORMAL,
+        RGB,
+        RGBA
+    }
+
     public static class ConfefeBuilder
     {
         private final Confefeger confefeger;
@@ -286,22 +293,32 @@ public class Confefeger
 
         public Confefeg<Double> submit( double value, double min, double max )
         {
-            return new Confefeg<>( confefeger, name, description, category, side, value, min, max );
+            return Confefeg.fromRange( confefeger, name, description, category, side, value, min, max );
         }
 
         public Confefeg<Float> submit( float value, float min, float max )
         {
-            return new Confefeg<>( confefeger, name, description, category, side, value, min, max );
+            return Confefeg.fromRange( confefeger, name, description, category, side, value, min, max );
         }
 
 //        public Confefeg<Long> submit( long value, long min, long max )
 //        {
-//            return new Confefeg<>( confefeger, name, description, category, side, value, min, max );
+//            return Confefeg.fromRange( confefeger, name, description, category, side, value, min, max );
 //        }
 
         public Confefeg<Integer> submit( int value, int min, int max )
         {
-            return new Confefeg<>( confefeger, name, description, category, side, value, min, max );
+            return Confefeg.fromRange( confefeger, name, description, category, side, value, min, max );
+        }
+
+        public Confefeg<Integer> submitRGB( int value )
+        {
+            return Confefeg.fromRange( confefeger, name, description, category, side, value, Integer.MIN_VALUE, Integer.MAX_VALUE, ValueType.RGB );
+        }
+
+        public Confefeg<Integer> submitRGBA( int value )
+        {
+            return Confefeg.fromRange( confefeger, name, description, category, side, value <= 0xffffff ? value | (0xff << 24) : value, Integer.MIN_VALUE, Integer.MAX_VALUE, ValueType.RGBA );
         }
 
 //        public Confefeg<Character> submit( char value )
@@ -313,7 +330,7 @@ public class Confefeger
 
         public Confefeg<String> submit( String value )
         {
-            return new Confefeg<>( confefeger, name, description, category, side, value );
+            return Confefeg.fromValue( confefeger, name, description, category, side, value );
         }
     }
 
@@ -322,24 +339,25 @@ public class Confefeger
         public final Confefeger confefeger;
         public final String name, description, category;
         public final Side side;
-        private T value, localValue, min, max;
+        public final ValueType valueType;
+        private T value, localValue, min, max, defaultValue;
 
-        public Confefeg( Confefeger confefeger, String name, String description, String category, Side side, T value, T min, T max )
+        private static <T> Confefeg<T> fromRange( Confefeger confefeger, String name, String description, String category, Side side, T value, T min, T max, ValueType valueType )
         {
-            this.confefeger = confefeger;
-            this.name = name;
-            this.description = description;
-            this.category = category;
-            this.side = side;
-            this.value = value;
-            this.localValue = value;
-            this.min = min;
-            this.max = max;
-            confefeger.confefegs.put( name, this );
-            confefeger.loadConfefeg( this );
+            return new Confefeg<>( confefeger, name, description, category, side, value, min, max, valueType );
         }
 
-        public Confefeg( Confefeger confefeger, String name, String description, String category, Side side, T value )
+        private static <T> Confefeg<T> fromRange( Confefeger confefeger, String name, String description, String category, Side side, T value, T min, T max )
+        {
+            return new Confefeg<>( confefeger, name, description, category, side, value, min, max, ValueType.NORMAL );
+        }
+
+        private static <T> Confefeg<T> fromValue( Confefeger confefeger, String name, String description, String category, Side side, T value )
+        {
+            return new Confefeg<>( confefeger, name, description, category, side, value, value, value, ValueType.NORMAL );
+        }
+
+        private Confefeg( Confefeger confefeger, String name, String description, String category, Side side, T value, T min, T max, ValueType valueType )
         {
             this.confefeger = confefeger;
             this.name = name;
@@ -348,9 +366,12 @@ public class Confefeger
             this.side = side;
             this.value = value;
             this.localValue = value;
-            this.min = value;
-            this.max = value;
+            this.defaultValue = value;
+            this.min = min;
+            this.max = max;
+            this.valueType = valueType;
             confefeger.confefegs.put( name, this );
+            confefeger.loadConfefeg( this );
         }
 
         public T getMin()
@@ -373,6 +394,11 @@ public class Confefeger
         {
             return localValue;
         }
+
+        public T getDefaultValue()
+        {
+            return defaultValue;
+        }
         
         public void set( T value )
         {
@@ -380,8 +406,20 @@ public class Confefeger
             this.localValue = value;
 //            if( this.side == Side.COMMON )
 //            {
-                //Send packet to set config from to either side?
+                //Send packet to set confefeg from to either side?
 //            }
+        }
+
+        public static void setSmart( Confefeg confefeg, double value )
+        {
+            if( confefeg.value instanceof Double )
+                confefeg.set( Math.max( (double) confefeg.min, Math.min( (double) confefeg.max, value ) ) );
+            else if( confefeg.value instanceof Integer )
+                confefeg.set( Math.max( (int) confefeg.min, Math.min( (int) confefeg.max, (int) value ) ) );
+            else if( confefeg.value instanceof Float )
+                confefeg.set( Math.max( (float) confefeg.min, Math.min( (float) confefeg.max, (float) value ) ) );
+            else if( confefeg.value instanceof Long )
+                confefeg.set( Math.max( (long) confefeg.min, Math.min( (long) confefeg.max, (long) value ) ) );
         }
 
         /**

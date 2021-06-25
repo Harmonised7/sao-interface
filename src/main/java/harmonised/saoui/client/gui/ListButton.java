@@ -3,7 +3,7 @@ package harmonised.saoui.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import harmonised.saoui.config.SaouiConfefeg;
+import harmonised.saoui.confefeg.SaouiConfefeg;
 import harmonised.saoui.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -14,7 +14,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.fml.client.gui.widget.Slider;
 
 import java.util.UUID;
 
@@ -99,18 +98,15 @@ public class ListButton extends Button
             }
         }
 
-        Renderer.blitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, backgroundColor, alpha  );
-
-//        System.out.println( x + " " + y );
-//        this.renderBg( stack, mc, mouseX, mouseY);
-//        int j = getFGColor();
+        Renderer.blitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, backgroundColor, Util.multiplyAlphaColor( alpha, backgroundColor ) );
 
         if( foreground != null )
         {
             mc.getTextureManager().bindTexture( Icons.ICON_BASE );
-            Renderer.blitColor( stack, x + 2, x + getIconWidth() + 2, y + 1, y + getIconWidth() + 1, 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, SaouiConfefeg.iconBaseColor.get(), alpha );
+            Renderer.blitColor( stack, x + 2, x + getIconWidth() + 2, y + 1, y + getIconWidth() + 1, 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, SaouiConfefeg.iconBaseColor.get(), Util.multiplyAlphaColor( alpha, SaouiConfefeg.iconBaseColor.get() ) );
             mc.getTextureManager().bindTexture( foreground );
-            Renderer.blitColor( stack, x + 2, x + getIconWidth() + 2, y + 1, y + getIconWidth() + 1, 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, isHovered() ? SaouiConfefeg.iconHoverColor.get() : SaouiConfefeg.iconColor.get(), alpha );
+            int color = isHovered() ? SaouiConfefeg.iconHoverColor.get() : SaouiConfefeg.iconColor.get();
+            Renderer.blitColor( stack, x + 2, x + getIconWidth() + 2, y + 1, y + getIconWidth() + 1, 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, color, Util.multiplyAlphaColor( alpha, color ) );
         }
         else if( itemStack != null )
             Renderer.renderGuiItem( itemStack, x + 2, y + 1 );

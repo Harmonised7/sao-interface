@@ -1,7 +1,6 @@
 package harmonised.saoui;
 
 import harmonised.saoui.client.ClientHandler;
-import harmonised.saoui.config.SaouiConfefeg;
 import harmonised.saoui.events.EventHandler;
 import harmonised.saoui.network.NetworkHandler;
 import harmonised.saoui.util.Reference;

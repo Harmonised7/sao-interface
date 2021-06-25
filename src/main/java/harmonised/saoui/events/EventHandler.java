@@ -1,7 +1,8 @@
 package harmonised.saoui.events;
 
-import harmonised.saoui.config.Confefeger;
+import harmonised.saoui.confefeg.Confefeger;
 import harmonised.saoui.util.Reference;
+import harmonised.saoui.util.Util;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -37,6 +38,7 @@ public class EventHandler
     {
         if( event.getEntityLiving() instanceof PlayerEntity )
         {
+            Util.multiplyAlphaColor( 100, 0x66ffffff );
 //            Configs.parseConfig( Reference.MOD_ID );
 //            ConfigProcessor.saveConfig( SaoConfig.class );
         }

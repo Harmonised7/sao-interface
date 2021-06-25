@@ -9,8 +9,7 @@ import harmonised.pmmo.util.DP;
 import harmonised.pmmo.util.XP;
 import harmonised.saoui.SAOMod;
 import harmonised.saoui.client.ClientHandler;
-import harmonised.saoui.config.Confefeger;
-import harmonised.saoui.config.SaouiConfefeg;
+import harmonised.saoui.confefeg.Confefeger;
 import harmonised.saoui.network.MessageCraft;
 import harmonised.saoui.network.NetworkHandler;
 import harmonised.saoui.util.Reference;
@@ -217,6 +216,7 @@ public class SAOScreen extends Screen
         if( dirty && System.currentTimeMillis() - lastSave > 1000 )
         {
             Confefeger.saveAllConfefegers();
+            lastSave = System.currentTimeMillis();
             dirty = false;
         }
     }

@@ -1,6 +1,6 @@
 package harmonised.saoui.events;
 
-import harmonised.saoui.config.SaouiConfefeg;
+import harmonised.saoui.confefeg.SaouiConfefeg;
 import harmonised.saoui.network.NetworkHandler;
 import harmonised.saoui.util.Reference;
 import net.minecraftforge.eventbus.api.EventPriority;
