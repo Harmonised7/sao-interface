@@ -107,8 +107,10 @@ public class Renderer
 
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
-        drawHpBar( stack, livingEntity, partialTicks );
-        drawNPCIndicator( stack, livingEntity );
+        if( SaouiConfefeg.hpBarEnabled.get() )
+            drawHpBar( stack, livingEntity, partialTicks );
+        if( SaouiConfefeg.npcIndicatorEnabled.get() )
+            drawNPCIndicator( stack, livingEntity );
 
         stack.pop();
     }
@@ -451,7 +453,8 @@ public class Renderer
             color = SaouiConfefeg.npcIndicatorPassiveColor.get();
         else if( livingEntity instanceof MobEntity )
         {
-            if( attackers.contains( livingEntity.getEntityId() ) )
+
+            if( attackers.contains( livingEntity.getEntityId() ) && livingEntity.canAttack( mc.player ) )
                 color = SaouiConfefeg.npcIndicatorHostileColor.get();
             else
                 color = SaouiConfefeg.npcIndicatorAggresiveColor.get();
@@ -461,9 +464,9 @@ public class Renderer
         float scale = livingEntity.getRenderScale()*0.1523f;
         float height = scale*2;
         stack.translate( 0, -livingEntity.getHeight()*0.3251f - height, 0 );
-        mirrorBlitColor( stack, -scale, scale, -height, height, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color, 255 );
+        mirrorBlitColor( stack, -scale, scale, -height, height, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color, Util.multiplyAlphaColor( 255, color ) );
         stack.rotate( Vector3f.YP.rotationDegrees( 90 ) );
-        mirrorBlitColor( stack, -scale, scale, -height, height, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color, 255 );
+        mirrorBlitColor( stack, -scale, scale, -height, height, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color, Util.multiplyAlphaColor( 255, color ) );
         stack.pop();
     }
 
@@ -587,8 +590,7 @@ public class Renderer
 
     public static void drawCenteredString(MatrixStack stack, FontRenderer font, ITextComponent msg, float x, float y, int color )
     {
-        IReorderingProcessor ireorderingprocessor = msg.func_241878_f();
-        font.func_238422_b_(stack, ireorderingprocessor, x - font.func_243245_a(ireorderingprocessor) / 2f, y, color );
+        drawString( stack, font, msg, x - font.getStringPropertyWidth( msg )/2f, y, color );
     }
 
     public static void drawString( MatrixStack stack, FontRenderer font, String msg, float x, float y, int color )

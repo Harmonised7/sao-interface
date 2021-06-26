@@ -153,11 +153,23 @@ public class Confefeger
                         confefeg.set( Math.max( (float) confefeg.min, Math.min( (float) confefeg.max, Float.parseFloat( parsedValueString ) ) ) );
                     else if( value instanceof Double )
                         confefeg.set( Math.max( (double) confefeg.min, Math.min( (double) confefeg.max, Double.parseDouble( parsedValueString ) ) ) );
+                    else if( value instanceof Boolean )
+                    {
+                        parsedValueString = parsedValueString.toLowerCase();
+                        if( parsedValueString.startsWith( "t" ) || parsedValueString.startsWith( "y" ) )
+                            confefeg.set( true );
+                        else if( parsedValueString.startsWith( "f" ) || parsedValueString.startsWith( "n" ) )
+                            confefeg.set( false );
+                        else
+                            confefeg.set( confefeg.defaultValue );
+                    }
+                    else
+                        LOGGER.error( "Invalid Confefeg Type: " + value.getClass().getName() );
                 }
             }
             catch( Exception e )
             {
-                LOGGER.warn( "Invalid \""+ confefeg.name + "\" Confefe \"" + parsedValueString + "\"", e );
+                LOGGER.warn( "Invalid \""+ confefeg.name + "\" Confefeg \"" + parsedValueString + "\"", e );
             }
         }
         LOGGER.info( "Loaded Confefeg \"" + confefeg.name + "\" as " + confefeg.value );
@@ -242,6 +254,10 @@ public class Confefeger
             nbt.putDouble( "value", (float) confefeg.value );
         else if( confefeg.value instanceof Double )
             nbt.putDouble( "value", (double) confefeg.value );
+        else if( confefeg.value instanceof Boolean )
+            nbt.putDouble( "value", (boolean) confefeg.value ? 1D : 0D );
+        else
+            LOGGER.error( "Invalid Confefeg Type: " + confefeg.value.getClass().getName() );
 
         return nbt;
     }
@@ -255,9 +271,10 @@ public class Confefeger
 
     public enum ValueType
     {
-        NORMAL,
+        VALUE,
         RGB,
-        RGBA
+        RGBA,
+        BOOLEAN
     }
 
     public static class ConfefeBuilder
@@ -311,6 +328,11 @@ public class Confefeger
             return Confefeg.fromRange( confefeger, name, description, category, side, value, min, max );
         }
 
+        public Confefeg<Boolean> submit( boolean value )
+        {
+            return Confefeg.fromValue( confefeger, name, description, category, side, value, ValueType.BOOLEAN );
+        }
+
         public Confefeg<Integer> submitRGB( int value )
         {
             return Confefeg.fromRange( confefeger, name, description, category, side, value, Integer.MIN_VALUE, Integer.MAX_VALUE, ValueType.RGB );
@@ -318,6 +340,7 @@ public class Confefeger
 
         public Confefeg<Integer> submitRGBA( int value )
         {
+            System.out.println( value <= 0xffffff ? value | (0xff << 24) : value );
             return Confefeg.fromRange( confefeger, name, description, category, side, value <= 0xffffff ? value | (0xff << 24) : value, Integer.MIN_VALUE, Integer.MAX_VALUE, ValueType.RGBA );
         }
 
@@ -328,10 +351,10 @@ public class Confefeger
 //            return confefeg;
 //        }
 
-        public Confefeg<String> submit( String value )
-        {
-            return Confefeg.fromValue( confefeger, name, description, category, side, value );
-        }
+//        public Confefeg<String> submit( String value )
+//        {
+//            return Confefeg.fromValue( confefeger, name, description, category, side, value );
+//        }
     }
 
     public static class Confefeg<T> implements Supplier<T>
@@ -349,12 +372,17 @@ public class Confefeger
 
         private static <T> Confefeg<T> fromRange( Confefeger confefeger, String name, String description, String category, Side side, T value, T min, T max )
         {
-            return new Confefeg<>( confefeger, name, description, category, side, value, min, max, ValueType.NORMAL );
+            return new Confefeg<>( confefeger, name, description, category, side, value, min, max, ValueType.VALUE);
         }
 
         private static <T> Confefeg<T> fromValue( Confefeger confefeger, String name, String description, String category, Side side, T value )
         {
-            return new Confefeg<>( confefeger, name, description, category, side, value, value, value, ValueType.NORMAL );
+            return new Confefeg<>( confefeger, name, description, category, side, value, value, value, ValueType.VALUE);
+        }
+
+        private static <T> Confefeg<T> fromValue( Confefeger confefeger, String name, String description, String category, Side side, T value, ValueType valueType )
+        {
+            return new Confefeg<>( confefeger, name, description, category, side, value, value, value, valueType );
         }
 
         private Confefeg( Confefeger confefeger, String name, String description, String category, Side side, T value, T min, T max, ValueType valueType )
@@ -420,6 +448,10 @@ public class Confefeger
                 confefeg.set( Math.max( (float) confefeg.min, Math.min( (float) confefeg.max, (float) value ) ) );
             else if( confefeg.value instanceof Long )
                 confefeg.set( Math.max( (long) confefeg.min, Math.min( (long) confefeg.max, (long) value ) ) );
+            else if( confefeg.value instanceof Boolean )
+                confefeg.set( value == 0 );
+            else
+                LOGGER.error( "Invalid Confefeg Type: " + confefeg.value.getClass().getName() );
         }
 
         /**

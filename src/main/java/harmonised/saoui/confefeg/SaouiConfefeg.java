@@ -16,6 +16,7 @@ public class SaouiConfefeg
     public static Confefeger.Confefeg<Integer> iconHoverColor;
 
     //Hp Bar
+    public static Confefeger.Confefeg<Boolean> hpBarEnabled;
     public static Confefeger.Confefeg<Integer> hpBarGainIndicatorColor;
     public static Confefeger.Confefeg<Integer> hpBarLossIndicatorColor;
     public static Confefeger.Confefeg<Integer> hpBarPolyCount;
@@ -38,6 +39,7 @@ public class SaouiConfefeg
     public static Confefeger.Confefeg<Double> HungerBarHungerEndHue;
 
     //NPC Indicator
+    public static Confefeger.Confefeg<Boolean> npcIndicatorEnabled;
     public static Confefeger.Confefeg<Integer> npcIndicatorAggresiveColor;
     public static Confefeger.Confefeg<Integer> npcIndicatorHostileColor;
     public static Confefeger.Confefeg<Integer> npcIndicatorPassiveColor;
@@ -56,7 +58,7 @@ public class SaouiConfefeg
                 .build( "buttonColor" )
                 .category( "gui.buttons" )
                 .side( Confefeger.Side.LOCAL )
-                .submitRGBA( 0xffffff );
+                .submitRGBA( 0xeeeeee );
         buttonLockedColor = confefeger
                 .build( "buttonLockedColor" )
                 .category( "gui.buttons" )
@@ -92,16 +94,7 @@ public class SaouiConfefeg
                 .category( "gui.buttons" )
                 .side( Confefeger.Side.LOCAL )
                 .submitRGBA( 0xffffff );
-        hpBarGainIndicatorColor = confefeger
-                .build( "hpBarGainIndicatorColor" )
-                .category( "gui.hpBar" )
-                .side( Confefeger.Side.LOCAL )
-                .submitRGBA( 0xffffff );
-        hpBarLossIndicatorColor = confefeger
-                .build( "hpBarLossIndicatorColor" )
-                .category( "gui.hpBar" )
-                .side( Confefeger.Side.LOCAL )
-                .submitRGBA( 0xff0000 );
+
         HungerBarWarningColor = confefeger
                 .build( "HungerBarWarningColor" )
                 .category( "gui.hungerBar" )
@@ -112,26 +105,22 @@ public class SaouiConfefeg
                 .category( "gui.hungerBar" )
                 .side( Confefeger.Side.LOCAL )
                 .submitRGBA( 0xffff00 );
-        npcIndicatorAggresiveColor = confefeger
-                .build( "npcIndicatorAggresiveColor" )
-                .category( "gui.npcIndicator" )
+
+        hpBarEnabled = confefeger
+                .build( "hpBarEnabled" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( true );
+        hpBarGainIndicatorColor = confefeger
+                .build( "hpBarGainIndicatorColor" )
+                .category( "gui.hpBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submitRGBA( 0xffffff );
+        hpBarLossIndicatorColor = confefeger
+                .build( "hpBarLossIndicatorColor" )
+                .category( "gui.hpBar" )
                 .side( Confefeger.Side.LOCAL )
                 .submitRGBA( 0xff0000 );
-        npcIndicatorHostileColor = confefeger
-                .build( "npcIndicatorHostileColor" )
-                .category( "gui.npcIndicator" )
-                .side( Confefeger.Side.LOCAL )
-                .submitRGBA( 0xffaa00 );
-        npcIndicatorPassiveColor = confefeger
-                .build( "npcIndicatorPassiveColor" )
-                .category( "gui.npcIndicator" )
-                .side( Confefeger.Side.LOCAL )
-                .submitRGBA( 0x00ff00 );
-        npcIndicatorPlayerColor = confefeger
-                .build( "npcIndicatorPlayerColor" )
-                .category( "gui.npcIndicator" )
-                .side( Confefeger.Side.LOCAL )
-                .submitRGBA( 0x0000ff );
         hpBarScalePlayer = confefeger
                 .build( "hpBarScalePlayer" )
                 .category( "gui.hpBar" )
@@ -177,10 +166,12 @@ public class SaouiConfefeg
                 .category( "gui.hpBar" )
                 .side( Confefeger.Side.LOCAL )
                 .submitRGBA( 0x777777 );
+
         renderDistance = confefeger
                 .build( "renderDistance" )
                 .category( "gui.hpBar" )
                 .side( Confefeger.Side.LOCAL )
+
                 .submit( 150, 5, 8192 );
         HungerBarHungerStartHue = confefeger
                 .build( "HungerBarHungerStartHue" )
@@ -202,6 +193,12 @@ public class SaouiConfefeg
                 .category( "gui.effectIndicator" )
                 .side( Confefeger.Side.LOCAL )
                 .submit( 0.8f, 0, 15.23f );
+
+        npcIndicatorEnabled = confefeger
+                .build( "npcIndicatorEnabled" )
+                .category( "gui.npcIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submit( true );
         effectIndicatorHarmfulColor = confefeger
                 .build( "effectIndicatorHarmfulColor" )
                 .category( "gui.npcIndicator" )
@@ -217,5 +214,25 @@ public class SaouiConfefeg
                 .category( "gui.npcIndicator" )
                 .side( Confefeger.Side.LOCAL )
                 .submitRGBA( 0x00cc00 );
+        npcIndicatorAggresiveColor = confefeger
+                .build( "npcIndicatorAggresiveColor" )
+                .category( "gui.npcIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submitRGBA( 0xff0000 );
+        npcIndicatorHostileColor = confefeger
+                .build( "npcIndicatorHostileColor" )
+                .category( "gui.npcIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submitRGBA( 0xffaa00 );
+        npcIndicatorPassiveColor = confefeger
+                .build( "npcIndicatorPassiveColor" )
+                .category( "gui.npcIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submitRGBA( 0x00ff00 );
+        npcIndicatorPlayerColor = confefeger
+                .build( "npcIndicatorPlayerColor" )
+                .category( "gui.npcIndicator" )
+                .side( Confefeger.Side.LOCAL )
+                .submitRGBA( 0x0000ff );
     }
 }

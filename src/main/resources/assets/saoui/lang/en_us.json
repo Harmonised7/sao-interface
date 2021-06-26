@@ -45,5 +45,8 @@
   "saoui.gui.npcIndicator": "NPC Indicator",
   "saoui.gui.effectIndicator": "Effect Indicator",
   "saoui.reload": "Reload",
-  "saoui.reloadAll": "Reload All"
+  "saoui.reloadAll": "Reload All",
+  "saoui.range":"%1$s to %2$s",
+  "saoui.on": "On",
+  "saoui.off": "Off"
 }

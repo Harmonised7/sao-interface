@@ -29,7 +29,7 @@ public class ListButton extends Button
     public Box extraBox = null;
     public float x, y;
     public boolean displayTooltip = false, locked = false;
-    public int alpha = 255, customTextColor = -1;
+    public int alpha = 255, customTextColor = -1, customButtonColor = -1;
     ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
 
     public ResourceLocation background = Icons.RECTANGLE_BUTTON;
@@ -83,6 +83,8 @@ public class ListButton extends Button
         mc.getTextureManager().bindTexture( background );
 
         int backgroundColor = SaouiConfefeg.buttonColor.get();
+        if( customButtonColor != -1 )
+            backgroundColor = customButtonColor;
         if( locked )
             backgroundColor = SaouiConfefeg.buttonLockedColor.get();
         else if( isActive() )
@@ -91,7 +93,7 @@ public class ListButton extends Button
             backgroundColor = SaouiConfefeg.buttonHoverColor.get();
         else if( itemStack != null )
         {
-            if( SaouiConfefeg.buttonColor.get() != SaouiConfefeg.buttonActiveColor.get() && itemStack.isDamageable() && itemStack.isDamaged() )
+            if(!SaouiConfefeg.buttonColor.get().equals( SaouiConfefeg.buttonActiveColor.get() ) && itemStack.isDamageable() && itemStack.isDamaged() )
             {
                 int damageIn8Bit = (int) Util.map( itemStack.getDamage(), 0, itemStack.getMaxDamage(), 200, 0 );
                 backgroundColor = damageIn8Bit | damageIn8Bit << 8 | 255 << 16;
@@ -218,6 +220,12 @@ public class ListButton extends Button
     public ListButton setTextColor( int color )
     {
         customTextColor = color;
+        return this;
+    }
+
+    public ListButton setButtonColor( int color )
+    {
+        customButtonColor = color;
         return this;
     }
 

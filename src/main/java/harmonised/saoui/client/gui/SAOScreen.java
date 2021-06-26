@@ -663,7 +663,7 @@ public class SAOScreen extends Screen
 
     private static Box getConfefegsBox( String boxKey, Set<Confefeger.Confefeg> confefegs )
     {
-        Box box = new Box( boxKey ).setMaxDisplayButtons( 13 );
+        Box box = new Box( boxKey ).setMaxDisplayButtons( 11 );
 
         for( Confefeger.Confefeg confefeg : confefegs )
         {

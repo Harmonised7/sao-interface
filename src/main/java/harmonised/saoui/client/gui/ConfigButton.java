@@ -3,15 +3,19 @@ package harmonised.saoui.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import harmonised.pmmo.util.DP;
 import harmonised.saoui.confefeg.Confefeger;
 import harmonised.saoui.confefeg.SaouiConfefeg;
-import harmonised.saoui.util.Util;
+import harmonised.saoui.util.Reference;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ConfigButton extends ListButton
 {
+    private static final Logger LOGGER = LogManager.getLogger();
+
+    public ListButton button1 = null;
     public Slider slider1 = null, slider2 = null, slider3 = null, slider4 = null;
     public final Confefeger.Confefeg confefeg;
     public final Confefeger.ValueType valueType;
@@ -24,10 +28,9 @@ public class ConfigButton extends ListButton
         Object confefegValue = confefeg.get();
         this.confefeg = confefeg;
         this.valueType = this.confefeg.valueType;
-
         switch( valueType )
         {
-            case NORMAL:
+            case VALUE:
             {
                 double value, min, max;
                 if( confefegValue instanceof Integer || confefegValue instanceof Long || confefegValue instanceof Float || confefegValue instanceof  Double )
@@ -57,7 +60,7 @@ public class ConfigButton extends ListButton
                         max = (double) confefeg.getMax();
                     }
 
-                    slider1 = new Slider( x, y, width, height, value, min, max, new TranslationTextComponent( confefeg.confefeger.confefegName + "." + confefeg.name ), slider ->
+                    slider1 = new Slider( x, y, width, height, value, min, max, new StringTextComponent( "" ), slider ->
                     {
                         Confefeger.Confefeg.setSmart( confefeg, value );
                     }).setDecimals( confefegValue instanceof Integer ? 0 : -1 );
@@ -68,18 +71,18 @@ public class ConfigButton extends ListButton
             case RGB:
             {
                 int value = (int) confefegValue;
-                slider1 = new Slider( x, y, width, height, value & 0xff0000 >> 16, 0, 255, new TranslationTextComponent( confefeg.confefeger.confefegName + "." + confefeg.name ), slider ->
+                slider1 = new Slider( x, y, width, height, value & 0xff0000 >> 16, 0, 255, new StringTextComponent( "" ), slider ->
                 {
-                    confefeg.set( (int) confefeg.get() & 0xff << 16 | (int) ( (Slider) slider ).value );
+                    confefeg.set( (int) confefeg.get() & 0xff00ffff | (int) ( (Slider) slider ).value << 16 );
                 }).setButtonColor( 0xff0000 ).setDecimals( 0 );
-                slider2 = new Slider( x, y, width, height, value & 0x00ff00 >> 8, 0, 255, new TranslationTextComponent( confefeg.confefeger.confefegName + "." + confefeg.name ), slider ->
+                slider2 = new Slider( x, y, width, height, value & 0x00ff00 >> 8, 0, 255, new StringTextComponent( "" ), slider ->
                 {
-                    confefeg.set( (int) confefeg.get() & 0xff << 8 | (int) ( (Slider) slider ).value );
+                    confefeg.set( (int) confefeg.get() & 0xffff00ff | (int) ( (Slider) slider ).value << 8 );
                 }).setButtonColor( 0x00ff00 ).setDecimals( 0 );
-                slider3 = new Slider( x, y, width, height, value & 0x0000ff, 0, 255, new TranslationTextComponent( confefeg.confefeger.confefegName + "." + confefeg.name ), slider ->
+                slider3 = new Slider( x, y, width, height, value & 0x0000ff, 0, 255, new StringTextComponent( "" ), slider ->
                 {
-                    confefeg.set( (int) confefeg.get() & 0xff | (int) ( (Slider) slider ).value );
-                }).setButtonColor( 0x00000ff ).setDecimals( 0 );
+                    confefeg.set( (int) confefeg.get() & 0xffffff00 | (int) ( (Slider) slider ).value );
+                }).setButtonColor( 0x0000ff ).setDecimals( 0 );
             }
                 break;
 
@@ -88,22 +91,37 @@ public class ConfigButton extends ListButton
                 int value = (int) confefegValue;
 //                if( value <= 0xffffff )
 //                    value = value << 8;
-                slider1 = new Slider( x, y, width, height, value & 0x00ff0000 >> 16, 0, 255, new TranslationTextComponent( confefeg.confefeger.confefegName + "." + confefeg.name ), slider ->
+                slider1 = new Slider( x, y, width, height, ( value & 0x00ff0000 ) >> 16, 0, 255, new StringTextComponent( "" ), slider ->
                 {
                     confefeg.set( (int) confefeg.get() & 0xff00ffff | (int) ( (Slider) slider ).value << 16 );
                 }).setButtonColor( 0xff0000 ).setDecimals( 0 );
-                slider2 = new Slider( x, y, width, height, value & 0x0000ff00 >> 8, 0, 255, new TranslationTextComponent( confefeg.confefeger.confefegName + "." + confefeg.name ), slider ->
+                slider2 = new Slider( x, y, width, height, ( value & 0x0000ff00 ) >> 8, 0, 255, new StringTextComponent( "" ), slider ->
                 {
                     confefeg.set( (int) confefeg.get() & 0xffff00ff | (int) ( (Slider) slider ).value << 8 );
                 }).setButtonColor( 0x00ff00 ).setDecimals( 0 );
-                slider3 = new Slider( x, y, width, height, value & 0x000000ff, 0, 255, new TranslationTextComponent( confefeg.confefeger.confefegName + "." + confefeg.name ), slider ->
+                slider3 = new Slider( x, y, width, height, value & 0xff, 0, 255, new StringTextComponent( "" ), slider ->
                 {
                     confefeg.set( (int) confefeg.get() & 0xffffff00 | (int) ( (Slider) slider ).value );
                 }).setButtonColor( 0x0000ff ).setDecimals( 0 );
-                slider4 = new Slider( x, y, width, height, value & 0xff000000 >> 24 & 0xff, 0, 255, new TranslationTextComponent( confefeg.confefeger.confefegName + "." + confefeg.name ), slider ->
+                slider4 = new Slider( x, y, width, height, ( value & 0xff000000 ) >> 24 & 0xff, 0, 255, new StringTextComponent( "" ), slider ->
                 {
                     confefeg.set( (int) confefeg.get() & 0x00ffffff | (int) ( (Slider) slider ).value << 24 );
                 }).setButtonColor( 0xffffff ).setDecimals( 0 );
+            }
+                break;
+
+            case BOOLEAN:
+            {
+                button1 = new ListButton( box ).setButtonColor( (boolean) confefeg.get() ? SaouiConfefeg.buttonActiveColor.get() : SaouiConfefeg.buttonColor.get() ).setMsg( new TranslationTextComponent( "saoui." + ((boolean) confefeg.get() ? "on" : "off" ) ) ).onPress(theButton ->
+                {
+                    if( (boolean) confefeg.get() )
+                        confefeg.set( false );
+                    else
+                        confefeg.set( true );
+                    ((ListButton) theButton).setMsg( new TranslationTextComponent( "saoui." + ((boolean) confefeg.get() ? "on" : "off" ) ) );
+                    ((ListButton) theButton).setButtonColor( (boolean) confefeg.get() ? SaouiConfefeg.buttonActiveColor.get() : SaouiConfefeg.buttonColor.get() );
+                });
+                setMsg( new TranslationTextComponent( Reference.MOD_ID + "." + confefeg.name ) );
             }
                 break;
         }
@@ -120,39 +138,48 @@ public class ConfigButton extends ListButton
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         mc.getTextureManager().bindTexture( background );
 
-        int backgroundColor = SaouiConfefeg.buttonColor.get();
-        if( locked )
-            backgroundColor = SaouiConfefeg.buttonLockedColor.get();
-        else if( isActive() )
-            backgroundColor = SaouiConfefeg.buttonActiveColor.get();
+//        int backgroundColor = SaouiConfefeg.buttonColor.get();
+//        if( locked )
+//            backgroundColor = SaouiConfefeg.buttonLockedColor.get();
+//        else if( isActive() )
+//            backgroundColor = SaouiConfefeg.buttonActiveColor.get();
 //        else if( isHovered() )
 //            backgroundColor = SaouiConfefeg.buttonHoverColor.get();
 
-        Renderer.blitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, backgroundColor, Util.multiplyAlphaColor( alpha, backgroundColor ) );
-        slider1.x = x;
-        slider1.y = y;
-        slider1.alpha = alpha;
-        slider1.renderButton( stack, mouseX, mouseY, partialTicks );
-        if( valueType == Confefeger.ValueType.RGB || valueType == Confefeger.ValueType.RGBA )
+//        Renderer.blitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, backgroundColor, Util.multiplyAlphaColor( alpha, backgroundColor ) );
+        if( valueType == Confefeger.ValueType.BOOLEAN )
         {
-            slider2.x = slider1.x + slider1.getWidth();
-            slider2.y = y;
-            slider2.alpha = alpha;
-            slider2.renderButton( stack, mouseX, mouseY, partialTicks );
-
-            slider3.x = slider2.x + slider2.getWidth();
-            slider3.y = y;
-            slider3.alpha = alpha;
-            slider3.renderButton( stack, mouseX, mouseY, partialTicks );
-            if( valueType == Confefeger.ValueType.RGBA )
-            {
-                slider4.x = slider3.x + slider3.getWidth();
-                slider4.y = y;
-                slider4.alpha = alpha;
-                slider4.renderButton( stack, mouseX, mouseY, partialTicks );
-            }
+            button1.x = x;
+            button1.y = y;
+            button1.renderButton( stack, mouseX, mouseY, partialTicks );
         }
-        Renderer.drawCenteredString( stack, font, getMessage(), x + width/2f, y, 0xffffff );
+        else
+        {
+            slider1.x = x;
+            slider1.y = y;
+            slider1.alpha = alpha;
+            slider1.renderButton( stack, mouseX, mouseY, partialTicks );
+            if( valueType == Confefeger.ValueType.RGB || valueType == Confefeger.ValueType.RGBA )
+            {
+                slider2.x = slider1.x + slider1.getWidth();
+                slider2.y = y;
+                slider2.alpha = alpha;
+                slider2.renderButton( stack, mouseX, mouseY, partialTicks );
+
+                slider3.x = slider2.x + slider2.getWidth();
+                slider3.y = y;
+                slider3.alpha = alpha;
+                slider3.renderButton( stack, mouseX, mouseY, partialTicks );
+                if( valueType == Confefeger.ValueType.RGBA )
+                {
+                    slider4.x = slider3.x + slider3.getWidth();
+                    slider4.y = y;
+                    slider4.alpha = alpha;
+                    slider4.renderButton( stack, mouseX, mouseY, partialTicks );
+                }
+            }
+            Renderer.drawCenteredString( stack, font, getMessage(), x + width/2f, y, 0xffffff );
+        }
     }
 
     @Override
@@ -162,8 +189,40 @@ public class ConfigButton extends ListButton
     }
 
     @Override
+    public boolean mouseClicked( double mouseX, double mouseY, int button )
+    {
+        switch( valueType )
+        {
+            case BOOLEAN:
+                this.button1.mouseClicked( mouseX, mouseY, button );
+                break;
+
+            case VALUE:
+                slider1.mouseClicked( mouseX, mouseY, button );
+                break;
+
+            case RGB:
+                slider1.mouseClicked( mouseX, mouseY, button );
+                slider2.mouseClicked( mouseX, mouseY, button );
+                slider3.mouseClicked( mouseX, mouseY, button );
+                break;
+
+            case RGBA:
+                slider1.mouseClicked( mouseX, mouseY, button );
+                slider2.mouseClicked( mouseX, mouseY, button );
+                slider3.mouseClicked( mouseX, mouseY, button );
+                slider4.mouseClicked( mouseX, mouseY, button );
+                break;
+        }
+        return false;
+    }
+
+    @Override
     public boolean mouseDragged( double mouseX, double mouseY, int button, double dragX, double dragY )
     {
+        if( valueType == Confefeger.ValueType.BOOLEAN )
+            return false;
+
         if( slider1.mouseDragged( mouseX, mouseY, button, dragX, dragY ) )
             return true;
 
@@ -183,41 +242,36 @@ public class ConfigButton extends ListButton
     @Override
     public void setWidth( int width )
     {
-        switch( valueType )
+        try
         {
-            case NORMAL:
-                slider1.setWidth( width );
-                break;
+            switch( valueType )
+            {
+                case BOOLEAN:
+                    button1.setWidth( width );
+                    break;
 
-            case RGB:
-                slider1.setWidth( width/3 );
-                slider2.setWidth( width/3 );
-                slider3.setWidth( width/3 );
-                break;
+                case VALUE:
+                    slider1.setWidth( width );
+                    break;
 
-            case RGBA:
-                slider1.setWidth( width/4 );
-                slider2.setWidth( width/4 );
-                slider3.setWidth( width/4 );
-                slider4.setWidth( width/4 );
-                break;
+                case RGB:
+                    slider1.setWidth( width/3 );
+                    slider2.setWidth( width/3 );
+                    slider3.setWidth( width/3 );
+                    break;
+
+                case RGBA:
+                    slider1.setWidth( width/4 );
+                    slider2.setWidth( width/4 );
+                    slider3.setWidth( width/4 );
+                    slider4.setWidth( width/4 );
+                    break;
+            }
+        }
+        catch( Exception e )
+        {
+            LOGGER.error( "Tried to set width before ConfigButton initialized!" );
         }
         super.setWidth( width );
-    }
-
-    public int getColor()
-    {
-        int color = -1;
-        switch( valueType )
-        {
-            case RGB:
-                color = ( (int) slider1.value << 16 ) | ( (int) slider2.value << 8 ) | ( (int) slider3.value );
-                break;
-
-            case RGBA:
-                color = ( (int) slider1.value << 24 ) | ( (int) slider2.value << 16 ) | ( (int) slider3.value << 8 ) | ( (int) slider4.value );
-                break;
-        }
-        return color;
     }
 }

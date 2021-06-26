@@ -4,6 +4,8 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import harmonised.pmmo.util.DP;
+import harmonised.saoui.confefeg.SaouiConfefeg;
+import harmonised.saoui.util.Reference;
 import harmonised.saoui.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -43,9 +45,10 @@ public class Slider extends Button
         mc.getTextureManager().bindTexture( Icons.RECTANGLE_BUTTON );
 
         float buttonX = getButtonX();
-        Renderer.blitColor( stack, x, x + width, y, y + height, 0, 128, 32, 0, 0, 128, 32, 0x666666, alpha );
+        Renderer.blitColor( stack, x, x + width, y, y + height, 0, 128, 32, 0, 0, 128, 32, SaouiConfefeg.buttonColor.get(), Util.multiplyAlphaColor( alpha, SaouiConfefeg.buttonColor.get() ) );
         Renderer.blitColor( stack, buttonX, buttonX + buttonWidth, y, y + getHeightRealms(), 0, 128, 32, 0, 0, 128, 32, buttonColor, Util.multiplyAlphaColor( alpha, buttonColor ) );
-        Renderer.drawCenteredString( stack, font, new StringTextComponent( decimals < 0 ? DP.dpSoft( value ) : DP.dpCustom( value, decimals ) ), x + width/2f, y + getHeightRealms()/2f, alpha << 24 | 0xffffff );
+        Renderer.drawCenteredString( stack, font, getMessage(), x + width/2f, y + getHeightRealms()/2f, Util.multiplyAlphaColor( alpha, SaouiConfefeg.textColor.get() ) );
+        Renderer.drawCenteredString( stack, font, new StringTextComponent( decimals < 0 ? DP.dpSoft( value ) : DP.dpCustom( value, decimals ) ), x + width/2f, y + getHeightRealms()/2f, SaouiConfefeg.textColor.get() );
     }
     
     public float getButtonX()
@@ -61,11 +64,22 @@ public class Slider extends Button
     @Override
     public boolean mouseDragged( double mouseX, double mouseY, int button, double dragX, double dragY )
     {
-        if( mouseX > x && mouseX < x + width && mouseY > y && mouseY < y + height )
+        if( mouseX > x + buttonWidth/2D && mouseX < x + width - buttonWidth/2D && mouseY > y && mouseY < y + height )
         {
-            value = Util.mapCapped( mouseX, x + buttonWidth/2f, x + width - buttonWidth/2f, min, max );
+            value = Util.mapCapped( mouseX, x + buttonWidth, x + width - buttonWidth, min, max );
             onClick( mouseX, mouseY );
             SAOScreen.markDirty();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean mouseClicked( double mouseX, double mouseY, int button )
+    {
+        if( button == 0 && mouseX > x + buttonWidth/2D && mouseX < x + width - buttonWidth/2D && mouseY > y && mouseY < y + height )
+        {
+            onClick( mouseX, mouseY );
             return true;
         }
         return false;
