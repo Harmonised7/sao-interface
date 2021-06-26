@@ -29,12 +29,12 @@ public class PlayerInfoBox extends Box
     @Override
     public int getHeightRealms()
     {
-        return height;
+        return (int) getHeightFloat();
     }
 
     @Override
     public int getWidth()
     {
-        return width;
+        return (int) getWidthFloat();
     }
 }

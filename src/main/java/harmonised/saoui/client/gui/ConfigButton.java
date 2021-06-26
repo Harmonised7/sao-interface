@@ -15,7 +15,7 @@ public class ConfigButton extends ListButton
 {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    public ListButton button1 = null;
+    public SaoButton button1 = null;
     public Slider slider1 = null, slider2 = null, slider3 = null, slider4 = null;
     public final Confefeger.Confefeg confefeg;
     public final Confefeger.ValueType valueType;
@@ -62,7 +62,7 @@ public class ConfigButton extends ListButton
 
                     slider1 = new Slider( x, y, width, height, value, min, max, new StringTextComponent( "" ), slider ->
                     {
-                        Confefeger.Confefeg.setSmart( confefeg, value );
+                        Confefeger.Confefeg.setSmart( confefeg, slider1.value );
                     }).setDecimals( confefegValue instanceof Integer ? 0 : -1 );
                 }
             }
@@ -112,13 +112,13 @@ public class ConfigButton extends ListButton
 
             case BOOLEAN:
             {
-                button1 = new ListButton( box ).setButtonColor( (boolean) confefeg.get() ? SaouiConfefeg.buttonActiveColor.get() : SaouiConfefeg.buttonColor.get() ).setMsg( new TranslationTextComponent( "saoui." + ((boolean) confefeg.get() ? "on" : "off" ) ) ).onPress(theButton ->
+                button1 = new ListButton( box ).setButtonColor( (boolean) confefeg.get() ? SaouiConfefeg.buttonActiveColor.get() : SaouiConfefeg.buttonColor.get() ).setMsg( new TranslationTextComponent( "saoui." + confefeg.name ) ).onPress(theButton ->
                 {
                     if( (boolean) confefeg.get() )
                         confefeg.set( false );
                     else
                         confefeg.set( true );
-                    ((ListButton) theButton).setMsg( new TranslationTextComponent( "saoui." + ((boolean) confefeg.get() ? "on" : "off" ) ) );
+//                    ((ListButton) theButton).setMsg( new TranslationTextComponent( "saoui." + ((boolean) confefeg.get() ? "on" : "off" ) ) );
                     ((ListButton) theButton).setButtonColor( (boolean) confefeg.get() ? SaouiConfefeg.buttonActiveColor.get() : SaouiConfefeg.buttonColor.get() );
                 });
                 setMsg( new TranslationTextComponent( Reference.MOD_ID + "." + confefeg.name ) );
@@ -146,7 +146,10 @@ public class ConfigButton extends ListButton
 //        else if( isHovered() )
 //            backgroundColor = SaouiConfefeg.buttonHoverColor.get();
 
-//        Renderer.blitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, backgroundColor, Util.multiplyAlphaColor( alpha, backgroundColor ) );
+//        if( valueType == Confefeger.ValueType.RGB )
+//        {
+//            Renderer.blitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, backgroundColor, Util.multiplyAlphaColor( alpha, backgroundColor ) );
+//        }
         if( valueType == Confefeger.ValueType.BOOLEAN )
         {
             button1.x = x;
@@ -161,18 +164,18 @@ public class ConfigButton extends ListButton
             slider1.renderButton( stack, mouseX, mouseY, partialTicks );
             if( valueType == Confefeger.ValueType.RGB || valueType == Confefeger.ValueType.RGBA )
             {
-                slider2.x = slider1.x + slider1.getWidth();
+                slider2.x = slider1.x + slider1.getWidthFloat();
                 slider2.y = y;
                 slider2.alpha = alpha;
                 slider2.renderButton( stack, mouseX, mouseY, partialTicks );
 
-                slider3.x = slider2.x + slider2.getWidth();
+                slider3.x = slider2.x + slider2.getWidthFloat();
                 slider3.y = y;
                 slider3.alpha = alpha;
                 slider3.renderButton( stack, mouseX, mouseY, partialTicks );
                 if( valueType == Confefeger.ValueType.RGBA )
                 {
-                    slider4.x = slider3.x + slider3.getWidth();
+                    slider4.x = slider3.x + slider3.getWidthFloat();
                     slider4.y = y;
                     slider4.alpha = alpha;
                     slider4.renderButton( stack, mouseX, mouseY, partialTicks );
@@ -180,12 +183,6 @@ public class ConfigButton extends ListButton
             }
             Renderer.drawCenteredString( stack, font, getMessage(), x + width/2f, y, 0xffffff );
         }
-    }
-
-    @Override
-    public int getWidth()
-    {
-        return width;
     }
 
     @Override
@@ -247,24 +244,24 @@ public class ConfigButton extends ListButton
             switch( valueType )
             {
                 case BOOLEAN:
-                    button1.setWidth( width );
+                    button1.setWidthFloat( width );
                     break;
 
                 case VALUE:
-                    slider1.setWidth( width );
+                    slider1.setWidthFloat( width );
                     break;
 
                 case RGB:
-                    slider1.setWidth( width/3 );
-                    slider2.setWidth( width/3 );
-                    slider3.setWidth( width/3 );
+                    slider1.setWidthFloat( width/3 );
+                    slider2.setWidthFloat( width/3 );
+                    slider3.setWidthFloat( width/3 );
                     break;
 
                 case RGBA:
-                    slider1.setWidth( width/4 );
-                    slider2.setWidth( width/4 );
-                    slider3.setWidth( width/4 );
-                    slider4.setWidth( width/4 );
+                    slider1.setWidthFloat( width/4 );
+                    slider2.setWidthFloat( width/4 );
+                    slider3.setWidthFloat( width/4 );
+                    slider4.setWidthFloat( width/4 );
                     break;
             }
         }
@@ -272,6 +269,6 @@ public class ConfigButton extends ListButton
         {
             LOGGER.error( "Tried to set width before ConfigButton initialized!" );
         }
-        super.setWidth( width );
+        super.setWidthFloat( width );
     }
 }

@@ -5,26 +5,22 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import harmonised.pmmo.util.DP;
 import harmonised.saoui.confefeg.SaouiConfefeg;
-import harmonised.saoui.util.Reference;
 import harmonised.saoui.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 
-public class Slider extends Button
+public class Slider extends SaoButton
 {
     public Minecraft mc = Minecraft.getInstance();
     public FontRenderer font = mc.fontRenderer;
-    public float x, y;
+    public float x, y, width, height;
     public double value, min, max;
     public int buttonWidth = 4, buttonColor = 0xffff00ff, alpha = 255, decimals = -1;
 
-    public Slider(float x, float y, int width, int height, double value, double min, double max, ITextComponent title, IPressable pressedAction )
+    public Slider( float x, float y, float width, float height, double value, double min, double max, ITextComponent title, IPressable pressedAction )
     {
-        super( (int) x, (int) y, width, height, title, pressedAction );
         this.x = x;
         this.y = y;
         this.width = width;
@@ -46,9 +42,9 @@ public class Slider extends Button
 
         float buttonX = getButtonX();
         Renderer.blitColor( stack, x, x + width, y, y + height, 0, 128, 32, 0, 0, 128, 32, SaouiConfefeg.buttonColor.get(), Util.multiplyAlphaColor( alpha, SaouiConfefeg.buttonColor.get() ) );
-        Renderer.blitColor( stack, buttonX, buttonX + buttonWidth, y, y + getHeightRealms(), 0, 128, 32, 0, 0, 128, 32, buttonColor, Util.multiplyAlphaColor( alpha, buttonColor ) );
-        Renderer.drawCenteredString( stack, font, getMessage(), x + width/2f, y + getHeightRealms()/2f, Util.multiplyAlphaColor( alpha, SaouiConfefeg.textColor.get() ) );
-        Renderer.drawCenteredString( stack, font, new StringTextComponent( decimals < 0 ? DP.dpSoft( value ) : DP.dpCustom( value, decimals ) ), x + width/2f, y + getHeightRealms()/2f, SaouiConfefeg.textColor.get() );
+        Renderer.blitColor( stack, buttonX, buttonX + buttonWidth, y, y + getHeightFloat(), 0, 128, 32, 0, 0, 128, 32, buttonColor, Util.multiplyAlphaColor( alpha, buttonColor ) );
+//        Renderer.drawCenteredString( stack, font, getMessage(), x + width/2f, y + getHeightRealms()/2f, Util.multiplyAlphaColor( alpha, SaouiConfefeg.textColor.get() ) );
+        Renderer.drawCenteredString( stack, font, new StringTextComponent( decimals < 0 ? DP.dpSoft( value ) : DP.dpCustom( value, decimals ) ), x + width/2f, y + getHeightFloat()/2f, SaouiConfefeg.textColor.get() );
     }
     
     public float getButtonX()
@@ -95,5 +91,15 @@ public class Slider extends Button
     {
         this.decimals = decimals;
         return this;
+    }
+
+    public void setWidthFloat( float width )
+    {
+        this.width = width;
+    }
+
+    public void setHeightFloat( float height )
+    {
+        this.height = height;
     }
 }

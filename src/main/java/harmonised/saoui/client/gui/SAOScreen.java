@@ -153,13 +153,13 @@ public class SAOScreen extends Screen
         int middleY = Renderer.getScaledHeight()/2;
 
         int compound = 0;
-        int lastWidth = 0;
+        float lastWidth = 0;
 
         for ( Box box : boxes )
         {
             box.x = (int) xOffset + middleX + compound;
-            box.y = (int) yOffset + middleY - box.getHeightRealms() / 2f;
-            lastWidth = box.getWidth() + boxesGap;
+            box.y = (int) yOffset + middleY - box.getHeightFloat() / 2f;
+            lastWidth = box.getWidthFloat() + boxesGap;
 
             compound += lastWidth;
         }
@@ -182,8 +182,8 @@ public class SAOScreen extends Screen
 
         if( extraBox != null )
         {
-            extraBox.x = (float) xOffset + middleX - pos - extraBox.getWidth() - boxesGap;
-            extraBox.y = (float) yOffset + extraBox.getHeightRealms()/2f;
+            extraBox.x = (float) xOffset + middleX - pos - extraBox.getWidthFloat() - boxesGap;
+            extraBox.y = (float) yOffset + extraBox.getHeightFloat()/2f;
         }
 
         lastRender = System.currentTimeMillis();
@@ -207,9 +207,9 @@ public class SAOScreen extends Screen
         }
         for( Box box : boxes )
         {
-            for( ListButton button : box.buttons )
+            for( SaoButton button : box.buttons )
             {
-                button.renderTooltip( stack, mouseX, mouseY, partialTicks );
+                ((ListButton) button).renderTooltip( stack, mouseX, mouseY, partialTicks );
             }
         }
 //        renderTooltip( stack, new StringTextComponent( mouseX + " " + mouseY ), mouseX, mouseY );
@@ -254,9 +254,9 @@ public class SAOScreen extends Screen
     {
         for( Box box : boxes )
         {
-            for( ListButton listButton : box.buttons )
+            for( SaoButton saoButton : box.buttons )
             {
-                if( listButton.mouseClicked( mouseX, mouseY, button ) )
+                if( saoButton.mouseClicked( mouseX, mouseY, button ) )
                     return true;
             }
         }
@@ -283,9 +283,9 @@ public class SAOScreen extends Screen
         {
             for( Box box : boxes )
             {
-                for( ListButton listButton : box.buttons )
+                for( SaoButton saoButton : box.buttons )
                 {
-                    listButton.mouseDragged( mouseX, mouseY, button, deltaX, deltaY );
+                    saoButton.mouseDragged( mouseX, mouseY, button, deltaX, deltaY );
                 }
             }
         }
@@ -307,7 +307,7 @@ public class SAOScreen extends Screen
             openBox( (ListButton) theButton, updatePartyBox() );
         }));
 
-        box.addButton( new CircleButton( box ).setLock( !SAOMod.pmmoLoaded ).setIcon( Icons.STATS ).onPress(theButton ->
+        box.addButton( ( new CircleButton( box ).setLock( !SAOMod.pmmoLoaded ) ).setIcon( Icons.STATS ).onPress(theButton ->
         {
             openBox( (ListButton) theButton, getPmmoHiscoreBox( "totalLevel" ) );
         }));
@@ -421,7 +421,7 @@ public class SAOScreen extends Screen
 
         String playerName = mc.player.getDisplayName().getString();
 
-        List<ListButton> playerButtons = new ArrayList<>();
+        List<SaoButton> playerButtons = new ArrayList<>();
 
         for( Map.Entry<UUID, String> entry : XP.playerNames.entrySet() )
         {
@@ -431,7 +431,7 @@ public class SAOScreen extends Screen
             else
                 level = Skill.getLevelDecimal( skill, entry.getKey() );
 
-            ListButton button = new ListButton( box ).setIcon( Icons.ONE_PERSON ).setTextColor( Skill.getSkillColor( skill ) ).setMsg( new StringTextComponent( entry.getValue() + " " + DP.dpSoft( level ) ) ).onPress( theButton ->
+            SaoButton button = new ListButton( box ).setIcon( Icons.ONE_PERSON ).setTextColor( Skill.getSkillColor( skill ) ).setMsg( new StringTextComponent( entry.getValue() + " " + DP.dpSoft( level ) ) ).onPress( theButton ->
             {
                 openBox( (ListButton) theButton, getPmmoSkillsBox( entry.getKey() ) );
             });
@@ -447,7 +447,7 @@ public class SAOScreen extends Screen
         else
             playerButtons.sort( Comparator.comparingDouble( b -> XP.getOfflineXp( skill, ((ListButton) b).uuid ) ).reversed() );
 
-        for( ListButton button : playerButtons )
+        for( SaoButton button : playerButtons )
         {
             box.addButton( button );
         }
@@ -562,9 +562,9 @@ public class SAOScreen extends Screen
         Box box = new Box( "skills." + uuid.toString() );
 
         Map<String, Double> xpMap = XP.getOfflineXpMap( uuid );
-        List<ListButton> playerButtons = new ArrayList<>();
+        List<SaoButton> playerButtons = new ArrayList<>();
 
-        ListButton totalLevelButton = new ListButton( box ).setIcon( Icons.STATS ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.getTotalXpFromMap( xpMap ) ), new TranslationTextComponent( "pmmo.totalLevel" ) ) ).onPress(theButton ->
+        SaoButton totalLevelButton = new ListButton( box ).setIcon( Icons.STATS ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.getTotalXpFromMap( xpMap ) ), new TranslationTextComponent( "pmmo.totalLevel" ) ) ).onPress(theButton ->
         {
             openBox( (ListButton) theButton, getPmmoHiscoreBox( "totalLevel" ) );
         });
@@ -574,7 +574,7 @@ public class SAOScreen extends Screen
 
         for( Map.Entry<String, Double> skill : xpMap.entrySet() )
         {
-            ListButton button = new ListButton( box ).setIcon( Icons.STATS ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.levelAtXpDecimal( skill.getValue() ) ), new TranslationTextComponent( "pmmo." + skill.getKey() ) ) ).onPress(theButton ->
+            SaoButton button = new ListButton( box ).setIcon( Icons.STATS ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.levelAtXpDecimal( skill.getValue() ) ), new TranslationTextComponent( "pmmo." + skill.getKey() ) ) ).onPress(theButton ->
             {
                 openBox( (ListButton) theButton, getPmmoHiscoreBox( skill.getKey() ) );
             });
@@ -586,7 +586,7 @@ public class SAOScreen extends Screen
 
         playerButtons.sort( Comparator.comparingDouble( b -> XP.getOfflineXp( ((ListButton) b).regKey, uuid ) ).reversed() );
 
-        for( ListButton button : playerButtons )
+        for( SaoButton button : playerButtons )
         {
             box.addButton( button );
         }
@@ -880,7 +880,7 @@ public class SAOScreen extends Screen
 
                 int invIndex = i;
                 int finalSlot = slot;
-                ListButton boxButton = new ListButton( box ).setItemStack( itemStack, true ).enableTooltip().onPress(listButton ->
+                ListButton boxButton = (ListButton) new ListButton( box ).setItemStack( itemStack, true ).enableTooltip().onPress(listButton ->
                 {
                     if( invIndex == finalSlot )
                         Util.unequipItem( mc.player, finalSlot );
@@ -944,7 +944,7 @@ public class SAOScreen extends Screen
                 if( itemStack.canEquip( slot, mc.player ) )
                 {
                     int invIndex = i;
-                    ListButton boxButton = new ListButton( box ).setItemStack( itemStack, true ).onPress( listButton ->
+                    ListButton boxButton = (ListButton) new ListButton( box ).setItemStack( itemStack, true ).onPress( listButton ->
                     {
 //                        ListButton theButton = (ListButton) listButton;
                         if( invIndex < 36 )

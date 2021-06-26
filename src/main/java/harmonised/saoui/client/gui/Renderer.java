@@ -615,6 +615,11 @@ public class Renderer
         GuiUtils.drawHoveringText(matrixStack, tooltips, mouseX, mouseY, getScaledWidth(), getScaledHeight(), -1, mc.fontRenderer );
     }
 
+    public static float getTextCompWidth( ITextComponent comp )
+    {
+        return mc.fontRenderer.getCharacterManager().func_238356_a_( comp );
+    }
+
     public static int getScaledWidth()
     {
         return mc.getMainWindow().getScaledWidth();

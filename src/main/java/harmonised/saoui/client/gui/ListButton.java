@@ -18,54 +18,21 @@ import net.minecraft.util.text.StringTextComponent;
 import java.util.UUID;
 
 
-public class ListButton extends Button
+public class ListButton extends SaoButton
 {
-    public Minecraft mc = Minecraft.getInstance();
-    public FontRenderer font = mc.fontRenderer;
     private boolean isCircle = false;
-    public String regKey, buttonText;
-    public UUID uuid;
     public final Box box;
-    public Box extraBox = null;
-    public float x, y;
-    public boolean displayTooltip = false, locked = false;
-    public int alpha = 255, customTextColor = -1, customButtonColor = -1;
+
     ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
-
-    public ResourceLocation background = Icons.RECTANGLE_BUTTON;
-    public ResourceLocation foreground = null;
-    public ItemStack itemStack = null;
-    public IPressable onPress = null;
-
-    public static final int iconSize = 16, iconTexSize = 128;
-
-    public static final int rectangleButtonWidth = 128;
-    public static final int rectangleButtonHeight = 32;
 
     public ListButton( Box box )
     {
-        super( 0, 0, 16, 18, new StringTextComponent( "" ), (button) -> {} );
+        width = 16;
+        height = 18;
         this.box = box;
     }
 
-    @Override
-    public int getHeightRealms()
-    {
-        return height;
-    }
 
-
-
-    @Override
-    public int getWidth()
-    {
-        return Math.max( getTextWidth() + getIconWidth() + 6, width );
-    }
-
-    public int getTextWidth()
-    {
-        return font.getStringPropertyWidth( getMessage() );
-    }
 
     public int getIconWidth()
     {
@@ -100,7 +67,7 @@ public class ListButton extends Button
             }
         }
 
-        Renderer.blitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, backgroundColor, Util.multiplyAlphaColor( alpha, backgroundColor ) );
+        Renderer.blitColor( stack, x, x + getWidthFloat(), y, y + getHeightFloat(), 0, rectangleButtonWidth, rectangleButtonHeight, 0, 0, rectangleButtonWidth, rectangleButtonHeight, backgroundColor, Util.multiplyAlphaColor( alpha, backgroundColor ) );
 
         if( foreground != null )
         {
@@ -115,124 +82,9 @@ public class ListButton extends Button
 
         int textColor = customTextColor == -1 ? SaouiConfefeg.textColor.get() : customTextColor;
         if( foreground != null || itemStack != null )
-            Renderer.drawString( stack, font, this.getMessage(), x + getIconWidth() + 4, y + getHeightRealms()/4f, /* alpha << 24 | */ textColor );
+            Renderer.drawString( stack, font, this.getMessage(), x + getIconWidth() + 4, y + getHeightFloat()/4f, /* alpha << 24 | */ textColor );
         else
-            Renderer.drawCenteredString( stack, font, this.getMessage(), x + getWidth()/2f, y + getHeightRealms()/4f, /* alpha << 24 | */ textColor );
-    }
-
-    public void renderTooltip( MatrixStack stack, int mouseX, int mouseY, float partialTicks )
-    {
-        if( displayTooltip && itemStack != null )
-        {
-            if( isHovered( mouseX, mouseY ) )
-                Renderer.renderTooltip( stack, itemStack, mouseX, mouseY );
-        }
-    }
-
-    public boolean isHovered( double mouseX, double mouseY )
-    {
-        return mouseX > x && mouseX < x+getWidth() && mouseY > y && mouseY < y+ getHeightRealms();
-    }
-
-    @Override
-    public boolean mouseClicked( double mouseX, double mouseY, int button )
-    {
-        if( !locked && isHovered( mouseX, mouseY ) )
-        {
-            onPress.onPress( this );
-            return true;
-        }
-        else
-            return false;
-    }
-
-    public ListButton setIcon(ResourceLocation icon )
-    {
-        itemStack = null;
-        foreground = icon;
-        return this;
-    }
-
-    public ListButton setItem( Item item, boolean setName )
-    {
-        return this.setItemStack( new ItemStack( item ), setName );
-    }
-    public ListButton setItemStack( ItemStack itemStack, boolean setName )
-    {
-        foreground = null;
-        this.itemStack = itemStack;
-        if( setName )
-            return setMsg( itemStack );
-        return this;
-    }
-
-    public ListButton setMsg( ItemStack itemStack )
-    {
-        return setMsg( new StringTextComponent( ( itemStack.getMaxStackSize() > 1 ? itemStack.getCount() + "x " : "" ) + itemStack.getDisplayName().getString() ) );
-
-    }
-
-    public ListButton setMsg( ITextComponent msg )
-    {
-        super.setMessage( msg );
-        int msgWidth = font.getStringPropertyWidth( msg ) + 8;
-        if( getWidth() < msgWidth )
-            setWidth( msgWidth );
-        return this;
-    }
-
-    public ListButton onPress( IPressable onPress )
-    {
-        this.onPress = onPress;
-        return this;
-    }
-
-    public ListButton enableTooltip()
-    {
-        displayTooltip = true;
-        return this;
-    }
-
-    public ListButton disableTooltip()
-    {
-        displayTooltip = false;
-        return this;
-    }
-
-    public ListButton lock()
-    {
-        locked = true;
-        return this;
-    }
-
-    public ListButton setLock( boolean state )
-    {
-        locked = state;
-        return this;
-    }
-
-    public ListButton unlock()
-    {
-        locked = false;
-        return this;
-    }
-
-    public ListButton setTextColor( int color )
-    {
-        customTextColor = color;
-        return this;
-    }
-
-    public ListButton setButtonColor( int color )
-    {
-        customButtonColor = color;
-        return this;
-    }
-
-    public ListButton setExtraBox( Box extraBox )
-    {
-        this.extraBox = extraBox;
-        return this;
+            Renderer.drawCenteredString( stack, font, this.getMessage(), x + getWidthFloat()/2f, y + getHeightFloat()/4f, /* alpha << 24 | */ textColor );
     }
 
     public int getPos()
@@ -248,5 +100,14 @@ public class ListButton extends Button
     public boolean isActive()
     {
         return box.activeButton == this;
+    }
+
+    public void renderTooltip(MatrixStack stack, int mouseX, int mouseY, float partialTicks )
+    {
+        if( displayTooltip && itemStack != null )
+        {
+            if( isHovered( mouseX, mouseY ) )
+                Renderer.renderTooltip( stack, itemStack, mouseX, mouseY );
+        }
     }
 }

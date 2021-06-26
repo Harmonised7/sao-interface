@@ -36,26 +36,26 @@ public class CircleButton extends ListButton
         else if( isActive() || isHovered() )
             backgroundColor = SaouiConfefeg.iconHoverColor.get();
 
-        Renderer.blitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, circleButtonSize, circleButtonSize, 0, 0, circleButtonSize, circleButtonSize, backgroundColor, Util.multiplyAlphaColor( alpha, backgroundColor ) );
+        Renderer.blitColor( stack, x, x + getWidthFloat(), y, y + getHeightFloat(), 0, circleButtonSize, circleButtonSize, 0, 0, circleButtonSize, circleButtonSize, backgroundColor, Util.multiplyAlphaColor( alpha, backgroundColor ) );
 
         if( foreground != null )
         {
             mc.getTextureManager().bindTexture( foreground );
             int color = locked ? SaouiConfefeg.iconColor.get() : isHovered() ? SaouiConfefeg.iconHoverColor.get() : SaouiConfefeg.iconColor.get();
-            Renderer.blitColor( stack, x, x + getWidth(), y, y + getHeightRealms(), 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, color, Util.multiplyAlphaColor( alpha, color ) );
+            Renderer.blitColor( stack, x, x + getWidthFloat(), y, y + getHeightFloat(), 0, iconTexSize, iconTexSize, 0, 0, iconTexSize, iconTexSize, color, Util.multiplyAlphaColor( alpha, color ) );
         }
     }
 
     @Override
     public boolean isHovered( double mouseX, double mouseY )
     {
-        int radius = getWidth()/2;
+        float radius = getWidthFloat()/2;
         return Util.getDistance( x+radius, y+radius, mouseX, mouseY ) < radius;
     }
 
     @Override
     public int getWidth()
     {
-        return width;
+        return (int) width;
     }
 }

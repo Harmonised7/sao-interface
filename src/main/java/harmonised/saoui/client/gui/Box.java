@@ -12,22 +12,22 @@ import net.minecraft.util.text.TranslationTextComponent;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Box extends Widget
+public class Box extends SaoButton
 {
     private MainWindow sr = Minecraft.getInstance().getMainWindow();
     private long lastRender = System.currentTimeMillis();
-    public List<ListButton> buttons = new ArrayList<>();
+    public List<SaoButton> buttons = new ArrayList<>();
 
     public float x, y;
     public int maxDisplayButtons = 7, fadeFrom = 1;
-    private int buttonWidth = 16;
+    private float buttonWidth = 16;
     public final int buttonGap = 4;
     public int scrollPosGoal = 0;
     public float scrollPos = 0;
     public int backgroundColor = 0xffffff00;
     private final int midX, midY;
-    private final ListButton emptyButton;
-    public ListButton activeButton = null;
+    private final SaoButton emptyButton;
+    public SaoButton activeButton = null;
     public final String name;
     public boolean scrollLocked = false;
 
@@ -40,7 +40,6 @@ public class Box extends Widget
 
     public Box( String name )
     {
-        super( 0, 0, 0, 0, new TranslationTextComponent( "" ) );
 //        this.width = Renderer.getScaledWidth();
 //        this.height = Renderer.getScaledHeight();
         this.name = name;
@@ -53,11 +52,17 @@ public class Box extends Widget
     @Override
     public int getHeightRealms()
     {
+        return (int) getHeightFloat();
+    }
+
+    @Override
+    public float getHeightFloat()
+    {
         int buttonCount = Math.min( maxDisplayButtons, buttons.size() );
-        int height = 0;
+        float height = 0;
         for( int i = 0; i < buttonCount; i++ )
         {
-            height += buttons.get( i ).getHeightRealms();
+            height += buttons.get( i ).getHeightFloat();
         }
         height += ( Math.max( 0, buttonCount-1 ) )*buttonGap;
         return height;
@@ -66,7 +71,13 @@ public class Box extends Widget
     @Override
     public int getWidth()
     {
-        return buttons.size() > 0 ? getButtonWidth() : emptyButton.getWidth();
+        return (int) getWidthFloat();
+    }
+
+    @Override
+    public float getWidthFloat()
+    {
+        return buttons.size() > 0 ? getButtonWidth() : emptyButton.getWidthFloat();
     }
 
     @Override
@@ -79,18 +90,18 @@ public class Box extends Widget
             boolean isEven = buttonCount%2 == 0;
             int fadeInterval = Math.max( 25, Math.min( 200, 560/maxDisplayButtons ) );
             if( !Util.isProduction() )
-                Renderer.drawCenteredString( stack, Minecraft.getInstance().fontRenderer, new StringTextComponent( "" + name ), x + getWidth()/2f, y - 10, 0xffffff );
+                Renderer.drawCenteredString( stack, Minecraft.getInstance().fontRenderer, new StringTextComponent( "" + name ), x + getWidthFloat()/2f, y - 10, 0xffffff );
             int fadeStep;
             for( int i = 0; i < buttonCount; i++ )
             {
                 int buttonIndex = (i + scrollPosGoal )%buttonCount;
                 if( buttonIndex < 0 )
                     buttonIndex += buttonCount;
-                ListButton button = buttons.get( buttonIndex );
+                ListButton button = (ListButton) buttons.get( buttonIndex );
                 if( i >= maxDisplayButtons )
                     break;
                 button.x = x;
-                button.y = y + (button.getHeightRealms()+buttonGap)*i;
+                button.y = y + (button.getHeightFloat()+buttonGap)*i;
                 int thisMidButton = midButton;
                 if( isEven && i < midButton )
                     thisMidButton--;
@@ -104,7 +115,7 @@ public class Box extends Widget
         else
         {
             emptyButton.x = x;
-            emptyButton.y = y - emptyButton.getHeightRealms()/2f;
+            emptyButton.y = y - emptyButton.getHeightFloat()/2f;
             emptyButton.renderButton( stack, mouseX, mouseY, partialTicks );
         }
         lastRender = System.currentTimeMillis();
@@ -113,9 +124,9 @@ public class Box extends Widget
     @Override
     public boolean mouseClicked( double mouseX, double mouseY, int key )
     {
-        for( ListButton listButton : buttons )
+        for( SaoButton saoButton : buttons )
         {
-            if( listButton.mouseClicked( mouseX, mouseY, key ) )
+            if( saoButton.mouseClicked( mouseX, mouseY, key ) )
                 return true;
         }
         return super.mouseClicked(mouseX, mouseY, key );
@@ -125,13 +136,13 @@ public class Box extends Widget
     public void mouseMoved(double mouseX, double mouseY )
     {
         super.mouseMoved( mouseX, mouseY );
-        for( ListButton listButton : buttons )
+        for( SaoButton saoButton : buttons )
         {
-            listButton.mouseMoved( mouseX, mouseY );
+            saoButton.mouseMoved( mouseX, mouseY );
         }
     }
 
-    public int getButtonWidth()
+    public float getButtonWidth()
     {
         return buttonWidth;
     }
@@ -152,7 +163,7 @@ public class Box extends Widget
     @Override
     public boolean mouseScrolled( double mouseX, double mouseY, double amount )
     {
-        if( !scrollLocked && mouseX > x && mouseX < x+getWidth() && mouseY > y && mouseY < y+ getHeightRealms() )
+        if( !scrollLocked && mouseX > x && mouseX < x+getWidthFloat() && mouseY > y && mouseY < y+ getHeightFloat() )
         {
             if( amount > 0 )
                 scrollPosGoal--;
@@ -164,20 +175,20 @@ public class Box extends Widget
         return false;
     }
 
-    public void addButton( ListButton button )
+    public void addButton( SaoButton button )
     {
         this.buttons.add( button );
-        if( button.getWidth() > buttonWidth )
+        if( button.getWidthFloat() > buttonWidth )
         {
-            int newButtonWidth = button.getWidth();
+            float newButtonWidth = button.getWidthFloat();
             buttonWidth = newButtonWidth;
-            for( ListButton listButton : buttons )
+            for( SaoButton saoButton : buttons )
             {
-                listButton.setWidth( newButtonWidth );
+                saoButton.setWidthFloat( newButtonWidth );
             }
         }
         else
-            button.setWidth( buttonWidth );
+            button.setWidthFloat( buttonWidth );
     }
 
     public void clearButtons()

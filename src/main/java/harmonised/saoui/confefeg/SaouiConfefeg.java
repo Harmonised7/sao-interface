@@ -95,17 +95,6 @@ public class SaouiConfefeg
                 .side( Confefeger.Side.LOCAL )
                 .submitRGBA( 0xffffff );
 
-        HungerBarWarningColor = confefeger
-                .build( "HungerBarWarningColor" )
-                .category( "gui.hungerBar" )
-                .side( Confefeger.Side.LOCAL )
-                .submitRGBA( 0xff0000 );
-        HungerBarSaturationColor = confefeger
-                .build( "HungerBarSaturationColor" )
-                .category( "gui.hungerBar" )
-                .side( Confefeger.Side.LOCAL )
-                .submitRGBA( 0xffff00 );
-
         hpBarEnabled = confefeger
                 .build( "hpBarEnabled" )
                 .category( "gui.hpBar" )
@@ -171,8 +160,18 @@ public class SaouiConfefeg
                 .build( "renderDistance" )
                 .category( "gui.hpBar" )
                 .side( Confefeger.Side.LOCAL )
-
                 .submit( 150, 5, 8192 );
+
+        HungerBarWarningColor = confefeger
+                .build( "HungerBarWarningColor" )
+                .category( "gui.hungerBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submitRGBA( 0xff0000 );
+        HungerBarSaturationColor = confefeger
+                .build( "HungerBarSaturationColor" )
+                .category( "gui.hungerBar" )
+                .side( Confefeger.Side.LOCAL )
+                .submitRGBA( 0xffff00 );
         HungerBarHungerStartHue = confefeger
                 .build( "HungerBarHungerStartHue" )
                 .category( "gui.hungerBar" )
@@ -183,6 +182,7 @@ public class SaouiConfefeg
                 .category( "gui.hungerBar" )
                 .side( Confefeger.Side.LOCAL )
                 .submit( 360d, 0, 360 );
+
         effectIndicatorBaseSize = confefeger
                 .build( "effectIndicatorBaseSize" )
                 .category( "gui.effectIndicator" )

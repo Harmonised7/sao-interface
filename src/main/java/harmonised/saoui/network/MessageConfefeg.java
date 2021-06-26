@@ -60,6 +60,7 @@ public class MessageConfefeg
                         confefeg.setFromServer( nbt.getString( "value" ) );
                     else if( value instanceof Boolean )
                         confefeg.setFromServer( nbt.getBoolean( "value" ) );
+                    else
                         LOGGER.error( "Received an invalid type Config! How!?" );
                 }
                 else
