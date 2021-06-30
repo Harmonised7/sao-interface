@@ -6,37 +6,36 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import harmonised.saoui.confefeg.SaouiConfefeg;
 import harmonised.saoui.util.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-
-import java.util.UUID;
 
 
 public class ListButton extends SaoButton
 {
     private boolean isCircle = false;
-    public final Box box;
 
     ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
 
-    public ListButton( Box box )
+    public ListButton( ListBox box )
     {
         width = 16;
         height = 18;
         this.box = box;
     }
 
-
-
     public int getIconWidth()
     {
         return ( foreground != null || itemStack != null ) ? iconSize : 0;
+    }
+
+    @Override
+    public float getWidthFloat()
+    {
+        return Math.max( getTextWidth() + getIconWidth() + 6, width );
+    }
+
+    public float getTextWidth()
+    {
+        return Renderer.getTextCompWidth( getMessage() );
     }
 
     @Override
@@ -92,22 +91,8 @@ public class ListButton extends SaoButton
         return box.buttons.indexOf( this );
     }
 
-    public void setAsActive()
-    {
-        box.setActiveButton( this );
-    }
-
     public boolean isActive()
     {
         return box.activeButton == this;
-    }
-
-    public void renderTooltip(MatrixStack stack, int mouseX, int mouseY, float partialTicks )
-    {
-        if( displayTooltip && itemStack != null )
-        {
-            if( isHovered( mouseX, mouseY ) )
-                Renderer.renderTooltip( stack, itemStack, mouseX, mouseY );
-        }
     }
 }

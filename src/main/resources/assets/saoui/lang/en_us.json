@@ -48,5 +48,9 @@
   "saoui.reloadAll": "Reload All",
   "saoui.range":"%1$s to %2$s",
   "saoui.on": "On",
-  "saoui.off": "Off"
+  "saoui.off": "Off",
+  "saoui.levelX": "Level: %1$s",
+  "saoui.hungerX": "Hunger: %1$s/%2$s",
+  "saoui.saturationX": "Saturation: %1$s/%2$s",
+  "saoui.xpX": "Experience: %1$s%%"
 }

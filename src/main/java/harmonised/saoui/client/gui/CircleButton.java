@@ -7,16 +7,16 @@ import harmonised.saoui.confefeg.SaouiConfefeg;
 import harmonised.saoui.util.Util;
 import net.minecraft.util.ResourceLocation;
 
-public class CircleButton extends ListButton
+public class CircleButton extends SaoButton
 {
     public final ResourceLocation background = Icons.CIRCLE_BUTTON;
     private static final int circleButtonSize = 128;
 
-    public CircleButton( Box box )
+    public CircleButton( ListBox box )
     {
-        super( box );
         this.width = iconSize;
         this.height = iconSize;
+        this.box = box;
     }
 
     @Override
@@ -57,5 +57,10 @@ public class CircleButton extends ListButton
     public int getWidth()
     {
         return (int) width;
+    }
+
+    public boolean isActive()
+    {
+        return box.activeButton == this;
     }
 }

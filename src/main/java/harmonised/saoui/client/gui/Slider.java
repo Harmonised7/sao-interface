@@ -15,19 +15,19 @@ public class Slider extends SaoButton
 {
     public Minecraft mc = Minecraft.getInstance();
     public FontRenderer font = mc.fontRenderer;
-    public float x, y, width, height;
     public double value, min, max;
     public int buttonWidth = 4, buttonColor = 0xffff00ff, alpha = 255, decimals = -1;
 
-    public Slider( float x, float y, float width, float height, double value, double min, double max, ITextComponent title, IPressable pressedAction )
+    public Slider( float width, float height, double value, double min, double max, ITextComponent title )
     {
-        this.x = x;
-        this.y = y;
+        this.x = 0;
+        this.y = 0;
         this.width = width;
         this.height = height;
         this.value = value;
         this.min = min;
         this.max = max;
+        setMsg( title );
     }
 
     @Override
@@ -75,7 +75,9 @@ public class Slider extends SaoButton
     {
         if( button == 0 && mouseX > x + buttonWidth/2D && mouseX < x + width - buttonWidth/2D && mouseY > y && mouseY < y + height )
         {
+            value = Util.mapCapped( mouseX, x + buttonWidth, x + width - buttonWidth, min, max );
             onClick( mouseX, mouseY );
+            SAOScreen.markDirty();
             return true;
         }
         return false;
@@ -91,15 +93,5 @@ public class Slider extends SaoButton
     {
         this.decimals = decimals;
         return this;
-    }
-
-    public void setWidthFloat( float width )
-    {
-        this.width = width;
-    }
-
-    public void setHeightFloat( float height )
-    {
-        this.height = height;
     }
 }

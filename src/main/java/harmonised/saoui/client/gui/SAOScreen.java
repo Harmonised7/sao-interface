@@ -43,9 +43,10 @@ public class SAOScreen extends Screen
 {
     private static boolean init = false, dirty = false;
     public static long lastSave = System.currentTimeMillis();
-    public static final List<Box> boxes = new ArrayList<>();
-    public static Box extraBox = null, extraBoxParent = null;
-    public static final Box partyBox = new Box( "party" ), partyMembersBox = new Box( "partyMembers" );
+    public static final List<ListBox> boxes = new ArrayList<>();
+    public static ListBox infoBoxParent = null;
+    public static InfoBox infoBox = null;
+    public static final ListBox partyBox = new ListBox( "party" ), partyMembersBox = new ListBox( "partyMembers" );
     private static float pos = 0, goalPos;
     private static CompoundNBT partyDataCopy = new CompoundNBT();
     private long lastRender = System.currentTimeMillis();
@@ -104,14 +105,14 @@ public class SAOScreen extends Screen
         }
     }
 
-    private static void openBox( ListButton button, Box box )
+    private static void openBox( SaoButton button, ListBox box )
     {
         int layer = button.box.getPos()+1;
         int boxCount = boxes.size();
         if( layer > 0 && boxCount-1 == layer )
         {
-            Box prevLayerBox = boxes.get( layer-1 );
-            Box sameLayerBox = boxes.get( layer );
+            ListBox prevLayerBox = boxes.get( layer-1 );
+            ListBox sameLayerBox = boxes.get( layer );
             if( sameLayerBox.name.equals( box.name ) )
             {
                 System.out.println( "Closing box " + layer );
@@ -126,10 +127,10 @@ public class SAOScreen extends Screen
         System.out.println( "Opening box " + boxes.size() );
         boxes.add( box );
 
-        if( button.extraBox != null )
+        if( button.infoBox != null )
         {
-            extraBox = button.extraBox;
-            extraBoxParent = box;
+            infoBox = button.infoBox;
+            infoBoxParent = box;
         }
 
         button.setAsActive();
@@ -146,8 +147,8 @@ public class SAOScreen extends Screen
 
     public void updatePositions( boolean force )
     {
-        if( extraBoxParent == null || !boxes.contains( extraBoxParent ) )
-            extraBox = null;
+        if( infoBoxParent == null || !boxes.contains(infoBoxParent) )
+            infoBox = null;
 
         int middleX = Renderer.getScaledWidth()/2;
         int middleY = Renderer.getScaledHeight()/2;
@@ -155,7 +156,7 @@ public class SAOScreen extends Screen
         int compound = 0;
         float lastWidth = 0;
 
-        for ( Box box : boxes )
+        for ( ListBox box : boxes )
         {
             box.x = (int) xOffset + middleX + compound;
             box.y = (int) yOffset + middleY - box.getHeightFloat() / 2f;
@@ -175,15 +176,15 @@ public class SAOScreen extends Screen
             pos += change;
         }
 
-        for( Box box : boxes )
+        for( ListBox box : boxes )
         {
             box.x -= pos;
         }
 
-        if( extraBox != null )
+        if( infoBox != null )
         {
-            extraBox.x = (float) xOffset + middleX - pos - extraBox.getWidthFloat() - boxesGap;
-            extraBox.y = (float) yOffset + extraBox.getHeightFloat()/2f;
+            infoBox.x = (float) xOffset + middleX - pos - infoBox.getWidthFloat() - boxesGap;
+            infoBox.y = (float) yOffset + infoBox.getHeightFloat()/2f;
         }
 
         lastRender = System.currentTimeMillis();
@@ -199,17 +200,17 @@ public class SAOScreen extends Screen
         }
 
         updatePositions( false );
-        if( extraBox != null && !Util.isProduction() )
-            extraBox.render( stack, mouseX, mouseY, partialTicks );
-        for( Box box : boxes )
+        if( infoBox != null && !Util.isProduction() )
+            infoBox.render( stack, mouseX, mouseY, partialTicks );
+        for( ListBox box : boxes )
         {
             box.render( stack, mouseX, mouseY, partialTicks );
         }
-        for( Box box : boxes )
+        for( ListBox box : boxes )
         {
             for( SaoButton button : box.buttons )
             {
-                ((ListButton) button).renderTooltip( stack, mouseX, mouseY, partialTicks );
+                button.renderTooltip( stack, mouseX, mouseY, partialTicks );
             }
         }
 //        renderTooltip( stack, new StringTextComponent( mouseX + " " + mouseY ), mouseX, mouseY );
@@ -221,7 +222,7 @@ public class SAOScreen extends Screen
         }
     }
 
-    public static int getBoxPos( Box box )
+    public static int getBoxPos( ListBox box )
     {
         return boxes.indexOf( box );
     }
@@ -241,7 +242,7 @@ public class SAOScreen extends Screen
     @Override
     public boolean mouseScrolled( double mouseX, double mouseY, double scroll)
     {
-        for( Box box : boxes )
+        for( ListBox box : boxes )
         {
             if( box.mouseScrolled( mouseX, mouseY, scroll ) )
                 return true;
@@ -252,7 +253,7 @@ public class SAOScreen extends Screen
     @Override
     public boolean mouseClicked( double mouseX, double mouseY, int button )
     {
-        for( Box box : boxes )
+        for( ListBox box : boxes )
         {
             for( SaoButton saoButton : box.buttons )
             {
@@ -281,7 +282,7 @@ public class SAOScreen extends Screen
         }
         else
         {
-            for( Box box : boxes )
+            for( ListBox box : boxes )
             {
                 for( SaoButton saoButton : box.buttons )
                 {
@@ -292,106 +293,108 @@ public class SAOScreen extends Screen
         return super.mouseDragged( mouseX, mouseY, button, deltaX, deltaY );
     }
 
-    private static Box getMainBox()
+    private static ListBox getMainBox()
     {
-        Box box = new Box( "main" );
+        ListBox box = new ListBox( "main" );
 
-        box.addButton( new CircleButton( box ).setIcon( Icons.ONE_PERSON ).setExtraBox( getPlayerInfoBox() ).onPress(theButton ->
+        box.addButton( new CircleButton( box ).setIcon( Icons.ONE_PERSON ).setinfoBox( getinfoBox() ).onPress(theButton ->
         {
 
-            openBox( (ListButton) theButton, getPlayerBox() );
+            openBox( (SaoButton) theButton, getPlayerBox() );
         }));
 
         box.addButton( new CircleButton( box ).setLock( !SAOMod.pmmoLoaded ).setIcon( Icons.TWO_PEOPLE ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, updatePartyBox() );
+            openBox( (SaoButton) theButton, updatePartyBox() );
         }));
 
         box.addButton( ( new CircleButton( box ).setLock( !SAOMod.pmmoLoaded ) ).setIcon( Icons.STATS ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getPmmoHiscoreBox( "totalLevel" ) );
+            openBox( (SaoButton) theButton, getPmmoHiscoreBox( "totalLevel" ) );
         }));
 
         box.addButton( new CircleButton( box ).setIcon( Icons.GEAR ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getMenuBox() );
+            openBox( (SaoButton) theButton, getMenuBox() );
         }));
 
         return box;
     }
 
-    private static Box getPlayerInfoBox()
+    private static InfoBox getinfoBox()
     {
-        Box box = new PlayerInfoBox( "playerInfo" );
+        InfoBox infoBox = new InfoBox();
 
-        return box;
+
+
+        return infoBox;
     }
 
-    private static Box getPlayerBox()
+    private static ListBox getPlayerBox()
     {
-        Box box = new Box( "player" );
+        ListBox box = new ListBox( "player" );
 
         box.addButton( new ListButton( box ).setIcon( Icons.SWORD ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".equip" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getEquipTypesBox() );
+            openBox( (SaoButton) theButton, getEquipTypesBox() );
         }));
 
         box.addButton( new ListButton( box ).setIcon( Icons.SWORD ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".items" ) ).onPress( theButton ->
         {
 
-            openBox( (ListButton) theButton, getSelectItemsBox() );
+            openBox( (SaoButton) theButton, getSelectItemsBox() );
         }));
 
         box.addButton( new ListButton( box ).setIcon( Icons.SWORD ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".crafting" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getCraftingTypesBox() );
+            openBox( (SaoButton) theButton, getCraftingTypesBox() );
         }));
 
         return box;
     }
 
-    private static Box getCraftingTypesBox()
+    private static ListBox getCraftingTypesBox()
     {
-        Box box = new Box( "craft" );
+        ListBox box = new ListBox( "craft" );
 
         box.addButton( new ListButton( box ).setItem( Items.COMPASS, false  ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".all" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getCraftingTypeBox( RecipeBookCategories.CRAFTING_SEARCH ) );
+            openBox( (SaoButton) theButton, getCraftingTypeBox( RecipeBookCategories.CRAFTING_SEARCH ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.REDSTONE, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".redstone" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getCraftingTypeBox( RecipeBookCategories.CRAFTING_REDSTONE ) );
+            openBox( (SaoButton) theButton, getCraftingTypeBox( RecipeBookCategories.CRAFTING_REDSTONE ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.BRICKS, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".blocks" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getCraftingTypeBox( RecipeBookCategories.CRAFTING_BUILDING_BLOCKS ) );
+            openBox( (SaoButton) theButton, getCraftingTypeBox( RecipeBookCategories.CRAFTING_BUILDING_BLOCKS ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.IRON_AXE, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".equipment" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getCraftingTypeBox( RecipeBookCategories.CRAFTING_EQUIPMENT ) );
+            openBox( (SaoButton) theButton, getCraftingTypeBox( RecipeBookCategories.CRAFTING_EQUIPMENT ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.LAVA_BUCKET, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".miscellaneous" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getCraftingTypeBox( RecipeBookCategories.CRAFTING_MISC ) );
+            openBox( (SaoButton) theButton, getCraftingTypeBox( RecipeBookCategories.CRAFTING_MISC ) );
         }));
 
         return box;
     }
 
-    private static Box getCraftingTypeBox( RecipeBookCategories type )
+    private static ListBox getCraftingTypeBox(RecipeBookCategories type )
     {
-        Box box = new Box( type.name() );
+        ListBox box = new ListBox( type.name() );
 
         generateCraftingButtons( box, type );
 
         return box;
     }
 
-    private static void generateCraftingButtons( Box box, RecipeBookCategories category )
+    private static void generateCraftingButtons(ListBox box, RecipeBookCategories category )
     {
         PlayerInventory inv = mc.player.inventory;
         RecipeItemHelper stackedContents = new RecipeItemHelper();
@@ -415,9 +418,9 @@ public class SAOScreen extends Screen
         }
     }
 
-    private static Box getPmmoHiscoreBox( String skill )
+    private static ListBox getPmmoHiscoreBox(String skill )
     {
-        Box box = new Box( "hiscore." + skill );
+        ListBox box = new ListBox( "hiscore." + skill );
 
         String playerName = mc.player.getDisplayName().getString();
 
@@ -433,7 +436,7 @@ public class SAOScreen extends Screen
 
             SaoButton button = new ListButton( box ).setIcon( Icons.ONE_PERSON ).setTextColor( Skill.getSkillColor( skill ) ).setMsg( new StringTextComponent( entry.getValue() + " " + DP.dpSoft( level ) ) ).onPress( theButton ->
             {
-                openBox( (ListButton) theButton, getPmmoSkillsBox( entry.getKey() ) );
+                openBox( (SaoButton) theButton, getPmmoSkillsBox( entry.getKey() ) );
             });
 
             if( entry.getValue().equals( playerName ) )
@@ -443,9 +446,9 @@ public class SAOScreen extends Screen
         }
 
         if( skill.equals( "totalLevel" ) )
-            playerButtons.sort( Comparator.comparingDouble( b -> XP.getTotalLevelFromMap( XP.getOfflineXpMap( ((ListButton) b).uuid ) ) ).reversed() );
+            playerButtons.sort( Comparator.comparingDouble( b -> XP.getTotalLevelFromMap( XP.getOfflineXpMap( ((SaoButton) b).uuid ) ) ).reversed() );
         else
-            playerButtons.sort( Comparator.comparingDouble( b -> XP.getOfflineXp( skill, ((ListButton) b).uuid ) ).reversed() );
+            playerButtons.sort( Comparator.comparingDouble( b -> XP.getOfflineXp( skill, ((SaoButton) b).uuid ) ).reversed() );
 
         for( SaoButton button : playerButtons )
         {
@@ -460,7 +463,7 @@ public class SAOScreen extends Screen
         return PartyPendingSystem.offlineData.size() > 0;
     }
 
-    private static Box updatePartyBox()
+    private static ListBox updatePartyBox()
     {
         partyBox.clearButtons();
 
@@ -471,7 +474,7 @@ public class SAOScreen extends Screen
         return partyBox;
     }
 
-    private static Box updatePartyMembersBox()
+    private static ListBox updatePartyMembersBox()
     {
         partyMembersBox.clearButtons();
         double reqDistance = Config.getConfig( "partyRange" );
@@ -511,7 +514,7 @@ public class SAOScreen extends Screen
         return partyMembersBox;
     }
 
-    private static void generatePartyButtons( Box box, boolean inParty )
+    private static void generatePartyButtons(ListBox box, boolean inParty )
     {
         box.clearButtons();
 
@@ -525,7 +528,7 @@ public class SAOScreen extends Screen
             box.addButton( new ListButton( box ).setIcon( Icons.TWO_PEOPLE ).setMsg( textComp ).onPress( theButton ->
             {
                 if( inParty() )
-                    openBox( (ListButton) theButton, updatePartyMembersBox() );
+                    openBox( (SaoButton) theButton, updatePartyMembersBox() );
             }));
 
             box.addButton( new ListButton( box ).setIcon( Icons.MINUS ).setMsg( new TranslationTextComponent( "saoui.leave" ) ).onPress( theButton ->
@@ -557,16 +560,16 @@ public class SAOScreen extends Screen
         }
     }
 
-    private static Box getPmmoSkillsBox( UUID uuid )
+    private static ListBox getPmmoSkillsBox(UUID uuid )
     {
-        Box box = new Box( "skills." + uuid.toString() );
+        ListBox box = new ListBox( "skills." + uuid.toString() );
 
         Map<String, Double> xpMap = XP.getOfflineXpMap( uuid );
         List<SaoButton> playerButtons = new ArrayList<>();
 
         SaoButton totalLevelButton = new ListButton( box ).setIcon( Icons.STATS ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.getTotalXpFromMap( xpMap ) ), new TranslationTextComponent( "pmmo.totalLevel" ) ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getPmmoHiscoreBox( "totalLevel" ) );
+            openBox( (SaoButton) theButton, getPmmoHiscoreBox( "totalLevel" ) );
         });
         totalLevelButton.regKey = "totalLevel";
         totalLevelButton.uuid = uuid;
@@ -576,7 +579,7 @@ public class SAOScreen extends Screen
         {
             SaoButton button = new ListButton( box ).setIcon( Icons.STATS ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.levelAtXpDecimal( skill.getValue() ) ), new TranslationTextComponent( "pmmo." + skill.getKey() ) ) ).onPress(theButton ->
             {
-                openBox( (ListButton) theButton, getPmmoHiscoreBox( skill.getKey() ) );
+                openBox( (SaoButton) theButton, getPmmoHiscoreBox( skill.getKey() ) );
             });
             button.customTextColor = Skill.getSkillColor( skill.getKey() );
             button.regKey = skill.getKey();
@@ -584,7 +587,7 @@ public class SAOScreen extends Screen
             playerButtons.add( button );
         }
 
-        playerButtons.sort( Comparator.comparingDouble( b -> XP.getOfflineXp( ((ListButton) b).regKey, uuid ) ).reversed() );
+        playerButtons.sort( Comparator.comparingDouble( b -> XP.getOfflineXp( ((SaoButton) b).regKey, uuid ) ).reversed() );
 
         for( SaoButton button : playerButtons )
         {
@@ -594,13 +597,13 @@ public class SAOScreen extends Screen
         return box;
     }
 
-    private static Box getMenuBox()
+    private static ListBox getMenuBox()
     {
-        Box box = new Box( "menu" );
+        ListBox box = new ListBox( "menu" );
 
         box.addButton( new ListButton( box ).setLock( Util.isProduction() ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".settings" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getSettingsBox() );
+            openBox( (SaoButton) theButton, getSettingsBox() );
         }));
 
         box.addButton( new ListButton( box ).setLock( Math.random() <= 0.01 ).setIcon( Icons.SWORD ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".logout" ) ).onPress( theButton ->
@@ -611,9 +614,9 @@ public class SAOScreen extends Screen
         return box;
     }
 
-    private static Box getSettingsBox()
+    private static ListBox getSettingsBox()
     {
-        Box box = new Box( "settings" );
+        ListBox box = new ListBox( "settings" );
 
         box.addButton( new ListButton( box ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".reloadAll" ) ).onPress( theButton ->
         {
@@ -624,16 +627,16 @@ public class SAOScreen extends Screen
         {
             box.addButton( new ListButton( box ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( "confefeg." + confefeger.confefegName ) ).onPress( theButton ->
             {
-                openBox( (ListButton) theButton, getConfefegerBox( confefeger ) );
+                openBox( (SaoButton) theButton, getConfefegerBox( confefeger ) );
             }));
         }
 
         return box;
     }
 
-    private static Box getConfefegerBox( Confefeger confefeger )
+    private static ListBox getConfefegerBox(Confefeger confefeger )
     {
-        Box box = new Box( "confefeg." + confefeger.confefegName );
+        ListBox box = new ListBox( "confefeg." + confefeger.confefegName );
 
         Map<String, Confefeger.Confefeg> confefegs = confefeger.getConfefegs();
         Map<String, Set<Confefeger.Confefeg>> categoryConfefegs = new HashMap<>();
@@ -654,16 +657,16 @@ public class SAOScreen extends Screen
         {
             box.addButton( new ListButton( box ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + "." + entry.getKey() ) ).onPress( theButton ->
             {
-                openBox( (ListButton) theButton, getConfefegsBox( entry.getKey(), entry.getValue() ) );
+                openBox( (SaoButton) theButton, getConfefegsBox( entry.getKey(), entry.getValue() ) );
             }));
         }
 
         return box;
     }
 
-    private static Box getConfefegsBox( String boxKey, Set<Confefeger.Confefeg> confefegs )
+    private static ListBox getConfefegsBox(String boxKey, Set<Confefeger.Confefeg> confefegs )
     {
-        Box box = new Box( boxKey ).setMaxDisplayButtons( 11 );
+        ListBox box = new ListBox( boxKey ).setMaxDisplayButtons( 11 );
 
         for( Confefeger.Confefeg confefeg : confefegs )
         {
@@ -675,124 +678,124 @@ public class SAOScreen extends Screen
         return box;
     }
 
-    private static Box getEquipTypesBox()
+    private static ListBox getEquipTypesBox()
     {
-        Box box = new Box( "equip" );
+        ListBox box = new ListBox( "equip" );
 
         box.addButton( new ListButton( box ).setIcon( Icons.SWORD ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".armor" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getEquipArmorBox() );
+            openBox( (SaoButton) theButton, getEquipArmorBox() );
         }));
 
         box.addButton( new ListButton( box ).setIcon( Icons.SWORD ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".weapons" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getSelectWeaponBox() );
+            openBox( (SaoButton) theButton, getSelectWeaponBox() );
         }));
 
         return box;
     }
 
-    private static Box getSelectWeaponBox()
+    private static ListBox getSelectWeaponBox()
     {
-        Box box = new Box( "selectWeapon" );
+        ListBox box = new ListBox( "selectWeapon" );
 
         box.addButton( new ListButton( box ).setItem( Items.DIAMOND_SWORD, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".swords" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.DIAMOND_AXE, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".axes" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.BOW, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".bows" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.CROSSBOW, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".crossbows" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         return box;
     }
 
-    private static Box getSelectItemsBox()
+    private static ListBox getSelectItemsBox()
     {
-        Box box = new Box( "selectItem" );
+        ListBox box = new ListBox( "selectItem" );
 
         box.addButton( new ListButton( box ).setItem( Items.GOLDEN_AXE, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".tools" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSelectToolsBox() );
+            openBox( (SaoButton) theButton, getSelectToolsBox() );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.FLINT_AND_STEEL, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".items" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.STONE_BRICKS, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".blocks" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.GOLDEN_CARROT, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".food" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.REDSTONE_TORCH, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".redstone" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.POTION, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".potions" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         return box;
     }
 
-    private static Box getSelectToolsBox()
+    private static ListBox getSelectToolsBox()
     {
-        Box box = new Box( "selectTool" );
+        ListBox box = new ListBox( "selectTool" );
 
         box.addButton( new ListButton( box ).setItem( Items.GOLDEN_PICKAXE, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".pickaxes" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.GOLDEN_AXE, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".axes" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.GOLDEN_SHOVEL, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".shovels" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         box.addButton( new ListButton( box ).setItem( Items.GOLDEN_HOE, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".hoes" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         return box;
     }
 
-    private static Box getSwapSlotTypeBox( String type )
+    private static ListBox getSwapSlotTypeBox(String type )
     {
-        Box box = new Box( type );
+        ListBox box = new ListBox( type );
 
         generateSwapSlotButtons( box, type );
 
         return box;
     }
 
-    private static void generateSwapSlotButtons( Box box, String type )
+    private static void generateSwapSlotButtons(ListBox box, String type )
     {
         box.clearButtons();
         PlayerInventory inv = mc.player.inventory;
@@ -880,7 +883,7 @@ public class SAOScreen extends Screen
 
                 int invIndex = i;
                 int finalSlot = slot;
-                ListButton boxButton = (ListButton) new ListButton( box ).setItemStack( itemStack, true ).enableTooltip().onPress(listButton ->
+                SaoButton boxButton = new ListButton( box ).setItemStack( itemStack, true ).enableTooltip().onPress(listButton ->
                 {
                     if( invIndex == finalSlot )
                         Util.unequipItem( mc.player, finalSlot );
@@ -896,42 +899,42 @@ public class SAOScreen extends Screen
         }
     }
 
-    private static Box getEquipArmorBox()
+    private static ListBox getEquipArmorBox()
     {
-        Box box = new Box( "equipArmor" );
+        ListBox box = new ListBox( "equipArmor" );
 
         box.addButton( new ListButton( box ).setItem( Items.DIAMOND_HELMET, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".head" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getEquipSlotTypeBox( EquipmentSlotType.HEAD ) );
+            openBox( (SaoButton) theButton, getEquipSlotTypeBox( EquipmentSlotType.HEAD ) );
         }));
         box.addButton( new ListButton( box ).setItem( Items.DIAMOND_CHESTPLATE, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".chest" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getEquipSlotTypeBox( EquipmentSlotType.CHEST ) );
+            openBox( (SaoButton) theButton, getEquipSlotTypeBox( EquipmentSlotType.CHEST ) );
         }));
         box.addButton( new ListButton( box ).setItem( Items.DIAMOND_LEGGINGS, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".legs" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getEquipSlotTypeBox( EquipmentSlotType.LEGS ) );
+            openBox( (SaoButton) theButton, getEquipSlotTypeBox( EquipmentSlotType.LEGS ) );
         }));
         box.addButton( new ListButton( box ).setItem( Items.DIAMOND_BOOTS, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".feet" ) ).onPress( theButton ->
         {
-            openBox( (ListButton) theButton, getEquipSlotTypeBox( EquipmentSlotType.FEET ) );
+            openBox( (SaoButton) theButton, getEquipSlotTypeBox( EquipmentSlotType.FEET ) );
         }));
         box.addButton( new ListButton( box ).setItem( Items.SHIELD, false ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".shields" ) ).onPress(theButton ->
         {
-            openBox( (ListButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
+            openBox( (SaoButton) theButton, getSwapSlotTypeBox( ((TranslationTextComponent)theButton.getMessage()).getKey().substring( Reference.MOD_ID.length() + 1 ) ) );
         }));
 
         return box;
     }
 
-    private static Box getEquipSlotTypeBox( EquipmentSlotType slot )
+    private static ListBox getEquipSlotTypeBox(EquipmentSlotType slot )
     {
-        Box box = new Box( "equip" + slot.getName() );
+        ListBox box = new ListBox( "equip" + slot.getName() );
         generateEquipButtons( box, slot );
         return box;
     }
 
-    private static void generateEquipButtons( Box box, EquipmentSlotType slot )
+    private static void generateEquipButtons(ListBox box, EquipmentSlotType slot )
     {
         box.clearButtons();
         PlayerInventory inv = mc.player.inventory;
@@ -944,9 +947,9 @@ public class SAOScreen extends Screen
                 if( itemStack.canEquip( slot, mc.player ) )
                 {
                     int invIndex = i;
-                    ListButton boxButton = (ListButton) new ListButton( box ).setItemStack( itemStack, true ).onPress( listButton ->
+                    SaoButton boxButton = new ListButton( box ).setItemStack( itemStack, true ).onPress( listButton ->
                     {
-//                        ListButton theButton = (ListButton) listButton;
+//                        ListButton theButton = (SaoButton) listButton;
                         if( invIndex < 36 )
                         {
                             Util.swapItems( mc.player, invIndex, Util.getEquipmentSlotInvIndex( slot ) );

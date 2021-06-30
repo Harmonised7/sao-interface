@@ -5,14 +5,13 @@ import harmonised.saoui.util.Reference;
 import harmonised.saoui.util.Util;
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Box extends SaoButton
+public class ListBox extends SaoButton
 {
     private MainWindow sr = Minecraft.getInstance().getMainWindow();
     private long lastRender = System.currentTimeMillis();
@@ -38,7 +37,7 @@ public class Box extends SaoButton
     //Button Arrow
     private static final int buttonArrowSize = 128;
 
-    public Box( String name )
+    public ListBox(String name )
     {
 //        this.width = Renderer.getScaledWidth();
 //        this.height = Renderer.getScaledHeight();
@@ -97,7 +96,7 @@ public class Box extends SaoButton
                 int buttonIndex = (i + scrollPosGoal )%buttonCount;
                 if( buttonIndex < 0 )
                     buttonIndex += buttonCount;
-                ListButton button = (ListButton) buttons.get( buttonIndex );
+                SaoButton button = buttons.get( buttonIndex );
                 if( i >= maxDisplayButtons )
                     break;
                 button.x = x;
@@ -196,24 +195,24 @@ public class Box extends SaoButton
         buttons.clear();
     }
 
-    public void setActiveButton( ListButton button )
+    public void setActiveButton( SaoButton button )
     {
         activeButton = button;
     }
 
-    public Box lockScroll()
+    public ListBox lockScroll()
     {
         scrollLocked = true;
         return this;
     }
 
-    public Box unlockScroll()
+    public ListBox unlockScroll()
     {
         scrollLocked = false;
         return this;
     }
 
-    public Box setMaxDisplayButtons( int value )
+    public ListBox setMaxDisplayButtons(int value )
     {
         this.maxDisplayButtons = Math.max( 1, value );
         return this;

@@ -16,18 +16,17 @@ public class SaoButton extends Button
 {
     public Minecraft mc = Minecraft.getInstance();
     public FontRenderer font = mc.fontRenderer;
-    
+
     public float x, y, width, height;
     public boolean displayTooltip = false, locked = false;
     public int alpha = 255, customTextColor = -1, customButtonColor = -1;
-    public Box extraBox = null;
+    public ListBox box = null;
+    public InfoBox infoBox = null;
     public String regKey;
     public UUID uuid;
 
     public ResourceLocation foreground = null;
     public ItemStack itemStack = null;
-
-    public IPressable onPress = null;
 
     public static final int iconSize = 16, iconTexSize = 128;
 
@@ -35,16 +34,17 @@ public class SaoButton extends Button
     public static final int rectangleButtonHeight = 32;
 
     public ResourceLocation background = Icons.RECTANGLE_BUTTON;
+
+    public IPressable onPress = null;
     
     public SaoButton()
     {
-        super( 0, 0, 16, 18, new StringTextComponent( "" ), (button) -> {} );
+        super( 0, 0, 4, 18, new StringTextComponent( "" ), (button) -> {} );
     }
 
     public SaoButton setMsg( ItemStack itemStack )
     {
         return setMsg( new StringTextComponent( ( itemStack.getMaxStackSize() > 1 ? itemStack.getCount() + "x " : "" ) + itemStack.getDisplayName().getString() ) );
-
     }
 
     public SaoButton setMsg( ITextComponent msg )
@@ -73,6 +73,12 @@ public class SaoButton extends Button
         return (int) width;
     }
 
+    @Override
+    public void setWidth( int width )
+    {
+        setWidthFloat( width );
+    }
+
     public void setHeightFloat( float height )
     {
         this.height = height;
@@ -90,7 +96,20 @@ public class SaoButton extends Button
         return (int) height;
     }
 
-    public SaoButton onPress( IPressable onPress )
+    @Override
+    @Deprecated
+    public void setHeight( int height )
+    {
+        setHeightFloat( height );
+    }
+
+    @Override
+    public void onPress()
+    {
+        onPress.onPress( this );
+    }
+
+    public SaoButton onPress(IPressable onPress )
     {
         this.onPress = onPress;
         return this;
@@ -155,9 +174,9 @@ public class SaoButton extends Button
             return false;
     }
 
-    public SaoButton setExtraBox( Box extraBox )
+    public SaoButton setinfoBox( InfoBox infoBox )
     {
-        this.extraBox = extraBox;
+        this.infoBox = infoBox;
         return this;
     }
 
@@ -168,7 +187,7 @@ public class SaoButton extends Button
         return this;
     }
 
-    public SaoButton setItem(Item item, boolean setName )
+    public SaoButton setItem( Item item, boolean setName )
     {
         return this.setItemStack( new ItemStack( item ), setName );
     }
@@ -181,5 +200,20 @@ public class SaoButton extends Button
         if( setName )
             return setMsg( itemStack );
         return this;
+    }
+
+    public void renderTooltip( MatrixStack stack, int mouseX, int mouseY, float partialTicks )
+    {
+        if( displayTooltip && itemStack != null )
+        {
+            if( isHovered( mouseX, mouseY ) )
+                Renderer.renderTooltip( stack, itemStack, mouseX, mouseY );
+        }
+    }
+
+    public void setAsActive()
+    {
+        if( box != null )
+            box.setActiveButton( this );
     }
 }

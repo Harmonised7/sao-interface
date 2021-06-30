@@ -11,7 +11,7 @@ import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ConfigButton extends ListButton
+public class ConfigButton extends SaoButton
 {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -20,11 +20,11 @@ public class ConfigButton extends ListButton
     public final Confefeger.Confefeg confefeg;
     public final Confefeger.ValueType valueType;
 
-    public ConfigButton( Box box, Confefeger.Confefeg confefeg )
+    public ConfigButton(ListBox box, Confefeger.Confefeg confefeg )
     {
-        super( box );
         this.width = 16;
         this.height = 18;
+        this.box = box;
         Object confefegValue = confefeg.get();
         this.confefeg = confefeg;
         this.valueType = this.confefeg.valueType;
@@ -60,10 +60,10 @@ public class ConfigButton extends ListButton
                         max = (double) confefeg.getMax();
                     }
 
-                    slider1 = new Slider( x, y, width, height, value, min, max, new StringTextComponent( "" ), slider ->
+                    slider1 = (Slider) new Slider( width, height, value, min, max, new StringTextComponent( "" ) ).setDecimals( confefegValue instanceof Integer ? 0 : -1 ).onPress( slider ->
                     {
                         Confefeger.Confefeg.setSmart( confefeg, slider1.value );
-                    }).setDecimals( confefegValue instanceof Integer ? 0 : -1 );
+                    });
                 }
             }
                 break;
@@ -71,18 +71,18 @@ public class ConfigButton extends ListButton
             case RGB:
             {
                 int value = (int) confefegValue;
-                slider1 = new Slider( x, y, width, height, value & 0xff0000 >> 16, 0, 255, new StringTextComponent( "" ), slider ->
+                slider1 = (Slider) new Slider( width, height, value & 0xff0000 >> 16, 0, 255, new StringTextComponent( "" ) ).setDecimals( 0 ).onPress( slider ->
                 {
                     confefeg.set( (int) confefeg.get() & 0xff00ffff | (int) ( (Slider) slider ).value << 16 );
-                }).setButtonColor( 0xff0000 ).setDecimals( 0 );
-                slider2 = new Slider( x, y, width, height, value & 0x00ff00 >> 8, 0, 255, new StringTextComponent( "" ), slider ->
+                }).setButtonColor( 0xff0000 );
+                slider2 = (Slider) new Slider( width, height, value & 0x00ff00 >> 8, 0, 255, new StringTextComponent( "" ) ).setDecimals( 0 ).onPress( slider ->
                 {
                     confefeg.set( (int) confefeg.get() & 0xffff00ff | (int) ( (Slider) slider ).value << 8 );
-                }).setButtonColor( 0x00ff00 ).setDecimals( 0 );
-                slider3 = new Slider( x, y, width, height, value & 0x0000ff, 0, 255, new StringTextComponent( "" ), slider ->
+                }).setButtonColor( 0x00ff00 );
+                slider3 = (Slider) new Slider( width, height, value & 0x0000ff, 0, 255, new StringTextComponent( "" ) ).setDecimals( 0 ).onPress( slider ->
                 {
                     confefeg.set( (int) confefeg.get() & 0xffffff00 | (int) ( (Slider) slider ).value );
-                }).setButtonColor( 0x0000ff ).setDecimals( 0 );
+                }).setButtonColor( 0x0000ff );
             }
                 break;
 
@@ -91,22 +91,22 @@ public class ConfigButton extends ListButton
                 int value = (int) confefegValue;
 //                if( value <= 0xffffff )
 //                    value = value << 8;
-                slider1 = new Slider( x, y, width, height, ( value & 0x00ff0000 ) >> 16, 0, 255, new StringTextComponent( "" ), slider ->
+                slider1 = (Slider) new Slider( width, height, ( value & 0x00ff0000 ) >> 16, 0, 255, new StringTextComponent( "" ) ).setDecimals( 0 ).onPress( slider ->
                 {
                     confefeg.set( (int) confefeg.get() & 0xff00ffff | (int) ( (Slider) slider ).value << 16 );
-                }).setButtonColor( 0xff0000 ).setDecimals( 0 );
-                slider2 = new Slider( x, y, width, height, ( value & 0x0000ff00 ) >> 8, 0, 255, new StringTextComponent( "" ), slider ->
+                }).setButtonColor( 0xff0000 );
+                slider2 = (Slider) new Slider( width, height, ( value & 0x0000ff00 ) >> 8, 0, 255, new StringTextComponent( "" ) ).setDecimals( 0 ).onPress( slider ->
                 {
                     confefeg.set( (int) confefeg.get() & 0xffff00ff | (int) ( (Slider) slider ).value << 8 );
-                }).setButtonColor( 0x00ff00 ).setDecimals( 0 );
-                slider3 = new Slider( x, y, width, height, value & 0xff, 0, 255, new StringTextComponent( "" ), slider ->
+                }).setButtonColor( 0x00ff00 );
+                slider3 = (Slider) new Slider( width, height, value & 0xff, 0, 255, new StringTextComponent( "" ) ).setDecimals( 0 ).onPress( slider ->
                 {
                     confefeg.set( (int) confefeg.get() & 0xffffff00 | (int) ( (Slider) slider ).value );
-                }).setButtonColor( 0x0000ff ).setDecimals( 0 );
-                slider4 = new Slider( x, y, width, height, ( value & 0xff000000 ) >> 24 & 0xff, 0, 255, new StringTextComponent( "" ), slider ->
+                }).setButtonColor( 0x0000ff );
+                slider4 = (Slider) new Slider( width, height, ( value & 0xff000000 ) >> 24 & 0xff, 0, 255, new StringTextComponent( "" ) ).setDecimals( 0 ).onPress( slider ->
                 {
                     confefeg.set( (int) confefeg.get() & 0x00ffffff | (int) ( (Slider) slider ).value << 24 );
-                }).setButtonColor( 0xffffff ).setDecimals( 0 );
+                }).setButtonColor( 0xffffff );
             }
                 break;
 
@@ -237,7 +237,7 @@ public class ConfigButton extends ListButton
     }
 
     @Override
-    public void setWidth( int width )
+    public void setWidthFloat( float width )
     {
         try
         {
@@ -252,16 +252,16 @@ public class ConfigButton extends ListButton
                     break;
 
                 case RGB:
-                    slider1.setWidthFloat( width/3 );
-                    slider2.setWidthFloat( width/3 );
-                    slider3.setWidthFloat( width/3 );
+                    slider1.setWidthFloat( width/3f );
+                    slider2.setWidthFloat( width/3f );
+                    slider3.setWidthFloat( width/3f );
                     break;
 
                 case RGBA:
-                    slider1.setWidthFloat( width/4 );
-                    slider2.setWidthFloat( width/4 );
-                    slider3.setWidthFloat( width/4 );
-                    slider4.setWidthFloat( width/4 );
+                    slider1.setWidthFloat( width/4f );
+                    slider2.setWidthFloat( width/4f );
+                    slider3.setWidthFloat( width/4f );
+                    slider4.setWidthFloat( width/4f );
                     break;
             }
         }

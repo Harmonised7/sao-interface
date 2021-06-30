@@ -233,8 +233,8 @@ public class Confefeger
         String output = "";
 
         output += "#Description:\t" + confefeg.description + "\n";
-        if( !( confefeg.value instanceof String ) )
-        output += "#Range:\t" + confefeg.min + "\tto\t" + confefeg.max + "\n";
+        if( !( confefeg.value instanceof String ) && !( confefeg.value instanceof Boolean ) )
+            output += "#Range:\t" + confefeg.min + "\tto\t" + confefeg.max + "\n";
         output += confefeg.name + "=" + confefeg.localValue + "\n";
 
         return output;

@@ -2,10 +2,11 @@ package harmonised.saoui.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 
-public class PlayerInfoBox extends InfoBox
+public class InfoBox extends SaoButton
 {
-    public PlayerInfoBox()
+    public InfoBox()
     {
         width = 96;
         height = 128;
@@ -16,5 +17,11 @@ public class PlayerInfoBox extends InfoBox
     {
         renderBg( stack, Minecraft.getInstance(), mouseX, mouseY );
 //        Renderer.drawEntityOnScreen( stack, x, y, 1, mouseX, mouseY, Minecraft.getInstance().player );
+    }
+
+    @Override
+    protected void renderBg( MatrixStack stack, Minecraft mc, int mouseX, int mouseY )
+    {
+        Renderer.fillGradient( stack, x, y, x + width, y + height, 0xffffffff, 0xddddddff );
     }
 }
