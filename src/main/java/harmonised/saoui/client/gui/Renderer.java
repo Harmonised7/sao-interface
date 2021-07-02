@@ -8,6 +8,7 @@ import harmonised.saoui.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.*;
@@ -26,6 +27,7 @@ import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.ITextComponent;
@@ -194,7 +196,7 @@ public class Renderer
             stack.push();
             stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
             stack.translate( -w/2f, -h/2f - 0.1f, offset );
-            mirrorBlitColor( stack, 0, w, 0, h, 0, hpBarPolyWidth, barHeight, hpBarPolyWidth *i, isPlayer ? barHeight : 0, fullBarWidth, barHeight*barElements, SaouiConfefeg.hpBarOutsideColor.get(), 255 );
+            mirrorBlitColor( stack, 0, w, 0, h, 0, hpBarPolyWidth, barHeight, hpBarPolyWidth *i, isPlayer ? barHeight : 0, fullBarWidth, barHeight*barElements, SaouiConfefeg.hpBarOutsideColor.get() );
             stack.pop();
         }
 
@@ -214,7 +216,7 @@ public class Renderer
             stack.push();
             stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
             stack.translate( -w/2f, -h/2f - 0.1f, offset );
-            mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*2, fullBarWidth, barHeight*barElements, Util.hueToRGB( (float) Util.map( hpBarHpRatio, 0, 1, SaouiConfefeg.hpBarEndHue.get(), SaouiConfefeg.hpBarStartHue.get() ), 1, 1 ), 200 );
+            mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*2, fullBarWidth, barHeight*barElements, Util.hueToRGB( (float) Util.map( hpBarHpRatio, 0, 1, SaouiConfefeg.hpBarEndHue.get(), SaouiConfefeg.hpBarStartHue.get() ), 1, 1 ) );
             stack.pop();
             if( maxPolyU < 1 )
                 break;
@@ -240,7 +242,7 @@ public class Renderer
                 stack.push();
                 stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*2, fullBarWidth, barHeight*barElements, SaouiConfefeg.hpBarGainIndicatorColor.get(), 200 );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*2, fullBarWidth, barHeight*barElements, SaouiConfefeg.hpBarGainIndicatorColor.get() );
                 minPolyU = 0;
                 stack.pop();
             }
@@ -261,7 +263,7 @@ public class Renderer
                 stack.push();
                 stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*2, fullBarWidth, barHeight*barElements, SaouiConfefeg.hpBarLossIndicatorColor.get(), 200 );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*2, fullBarWidth, barHeight*barElements, SaouiConfefeg.hpBarLossIndicatorColor.get() );
                 minPolyU = 0;
                 stack.pop();
             }
@@ -291,7 +293,7 @@ public class Renderer
                     stack.push();
                     stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
                     stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                    mirrorBlitColor( stack, 0, w, 0, h, 0, hpBarPolyWidth, barHeight, hpBarPolyWidth *i, barHeight*3, fullBarWidth, barHeight*barElements, SaouiConfefeg.HungerBarWarningColor.get(), 255 );
+                    mirrorBlitColor( stack, 0, w, 0, h, 0, hpBarPolyWidth, barHeight, hpBarPolyWidth *i, barHeight*3, fullBarWidth, barHeight*barElements, SaouiConfefeg.HungerBarWarningColor.get() );
                     stack.pop();
                 }
             }
@@ -309,7 +311,7 @@ public class Renderer
                 stack.push();
                 stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*3, fullBarWidth, barHeight*barElements, SaouiConfefeg.HungerBarSaturationColor.get(), 200 );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*3, fullBarWidth, barHeight*barElements, SaouiConfefeg.HungerBarSaturationColor.get() );
                 stack.pop();
                 if( maxPolyU < 1 )
                     break;
@@ -333,7 +335,7 @@ public class Renderer
                 stack.push();
                 stack.rotate( Vector3f.YP.rotationDegrees( polyDegStep*i + degOffset ) );
                 stack.translate( -w/2f, -h/2f - 0.1f, offset );
-                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*3, fullBarWidth, barHeight*barElements, Util.hueToRGB( (float) Util.map( hungerRatio, 0, 0.5, SaouiConfefeg.HungerBarHungerEndHue.get(), SaouiConfefeg.HungerBarHungerStartHue.get() ), 1f, 1f ), 200 );
+                mirrorBlitColor( stack, w*minPolyU, w*maxPolyU, 0, h, 0, hpBarPolyWidth *maxPolyU - hpBarPolyWidth *minPolyU, barHeight, hpBarPolyWidth *i + hpBarPolyWidth *minPolyU, barHeight*3, fullBarWidth, barHeight*barElements, Util.hueToRGB( (float) Util.map( hungerRatio, 0, 0.5, SaouiConfefeg.HungerBarHungerEndHue.get(), SaouiConfefeg.HungerBarHungerStartHue.get() ), 1f, 1f ) );
                 minPolyU = 0;
                 stack.pop();
             }
@@ -384,7 +386,7 @@ public class Renderer
                     color = SaouiConfefeg.effectIndicatorNeutralColor.get();
                     break;
             }
-            mirrorBlitColor( stack, 0, baseSize, 0, baseSize, 0, effectIndicatorSize, effectIndicatorSize, 0, 0, effectIndicatorSize, effectIndicatorSize, color, 255 );
+            mirrorBlitColor( stack, 0, baseSize, 0, baseSize, 0, effectIndicatorSize, effectIndicatorSize, 0, 0, effectIndicatorSize, effectIndicatorSize, color );
             stack.pop();
 
             i++;
@@ -464,9 +466,9 @@ public class Renderer
         float scale = livingEntity.getRenderScale()*0.1523f;
         float height = scale*2;
         stack.translate( 0, -livingEntity.getHeight()*0.3251f - height, 0 );
-        mirrorBlitColor( stack, -scale, scale, -height, height, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color, Util.multiplyAlphaColor( 255, color ) );
+        mirrorBlitColor( stack, -scale, scale, -height, height, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color );
         stack.rotate( Vector3f.YP.rotationDegrees( 90 ) );
-        mirrorBlitColor( stack, -scale, scale, -height, height, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color, Util.multiplyAlphaColor( 255, color ) );
+        mirrorBlitColor( stack, -scale, scale, -height, height, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color );
         stack.pop();
     }
 
@@ -519,18 +521,21 @@ public class Renderer
         WorldVertexBufferUploader.draw( bufferbuilder );
     }
 
-    public static void mirrorBlitColor( MatrixStack matrixStack, float x1, float x2, float y1, float y2, float blitOffset, float uWidth, float vHeight, float uOffset, float vOffset, float textureWidth, float textureHeight, int color, int alpha )
+    public static void mirrorBlitColor( MatrixStack matrixStack, float x1, float x2, float y1, float y2, float blitOffset, float uWidth, float vHeight, float uOffset, float vOffset, float textureWidth, float textureHeight, int color )
     {
-        mirrorBlitColor(matrixStack.getLast().getMatrix(), x1, x2, y1, y2, blitOffset, (uOffset + 0.0F) / textureWidth, (uOffset + uWidth) / textureWidth, (vOffset + 0.0F) / textureHeight, (vOffset + vHeight) / textureHeight, color, alpha );
+        mirrorBlitColor(matrixStack.getLast().getMatrix(), x1, x2, y1, y2, blitOffset, (uOffset + 0.0F) / textureWidth, (uOffset + uWidth) / textureWidth, (vOffset + 0.0F) / textureHeight, (vOffset + vHeight) / textureHeight, color );
     }
 
-    public static void mirrorBlitColor( Matrix4f matrix, float x1, float x2, float y1, float y2, float blitOffset, float minU, float maxU, float minV, float maxV, int color, int alpha )
+    public static void mirrorBlitColor( Matrix4f matrix, float x1, float x2, float y1, float y2, float blitOffset, float minU, float maxU, float minV, float maxV, int color )
     {
         BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
 
-        int red = color >> 16;
-        int green = ( color & 0x00ff00 ) >> 8;
-        int blue = color & 0x0000ff;
+        int alpha = Util.getAlphaFromColor( color );
+        if( alpha == 0 )
+            alpha = 255;
+        int red = ( color & 0x00ff0000 ) >> 16;
+        int green = ( color & 0x0000ff00 ) >> 8;
+        int blue = color & 0x000000ff;
 
         bufferbuilder.begin( 7, DefaultVertexFormats.POSITION_COLOR_TEX );
         bufferbuilder.pos( matrix, x1, y2, blitOffset ).color( red, green, blue, alpha ).tex( minU, maxV ).endVertex();
@@ -583,9 +588,9 @@ public class Renderer
 //        WorldVertexBufferUploader.draw( bufferbuilder );
     }
 
-    public static void mirrorBlitColorHorizontalFlip( MatrixStack matrixStack, float x1, float x2, float y1, float y2, float blitOffset, float uWidth, float vHeight, float uOffset, float vOffset, float textureWidth, float textureHeight, int color, int alpha )
+    public static void mirrorBlitColorHorizontalFlip( MatrixStack matrixStack, float x1, float x2, float y1, float y2, float blitOffset, float uWidth, float vHeight, float uOffset, float vOffset, float textureWidth, float textureHeight, int color )
     {
-        mirrorBlitColor(matrixStack.getLast().getMatrix(), x1, x2, y1, y2, blitOffset, 1 - ( (uOffset + 0.0F) / textureWidth ), 1 - ( (uOffset + uWidth) / textureWidth ), (vOffset + 0.0F) / textureHeight, (vOffset + vHeight) / textureHeight, color, alpha );
+        mirrorBlitColor(matrixStack.getLast().getMatrix(), x1, x2, y1, y2, blitOffset, 1 - ( (uOffset + 0.0F) / textureWidth ), 1 - ( (uOffset + uWidth) / textureWidth ), (vOffset + 0.0F) / textureHeight, (vOffset + vHeight) / textureHeight, color );
     }
 
     public static void drawCenteredString(MatrixStack stack, FontRenderer font, ITextComponent msg, float x, float y, int color )
@@ -700,5 +705,45 @@ public class Renderer
         builder.pos( matrix, x1, y1, z ).color(f1, f2, f3, f).endVertex();
         builder.pos( matrix, x1, y2, z ).color(f5, f6, f7, f4).endVertex();
         builder.pos( matrix, x2, y2, z ).color(f5, f6, f7, f4).endVertex();
+    }
+
+    public static void drawEntityOnScreen( MatrixStack stack, float posX, float posY, int scale, float mouseX, float mouseY, LivingEntity livingEntity )
+    {
+        float f = (float) ( (System.currentTimeMillis() / 25D ) % 360);
+        float f1 = 0;
+        RenderSystem.pushMatrix();
+        RenderSystem.translatef((float)posX, (float)posY, 1050.0F);
+        RenderSystem.scalef(1.0F, 1.0F, -1.0F);
+        MatrixStack matrixstack = new MatrixStack();
+        matrixstack.translate(0.0D, 0.0D, 1000.0D);
+        matrixstack.scale((float)scale, (float)scale, (float)scale);
+        Quaternion quaternion = Vector3f.ZP.rotationDegrees(180.0F);
+        Quaternion quaternion1 = Vector3f.XP.rotationDegrees(f1 * 20.0F);
+        quaternion.multiply(quaternion1);
+        matrixstack.rotate(quaternion);
+        float f2 = livingEntity.renderYawOffset;
+        float f3 = livingEntity.rotationYaw;
+        float f4 = livingEntity.rotationPitch;
+        float f5 = livingEntity.prevRotationYawHead;
+        float f6 = livingEntity.rotationYawHead;
+        livingEntity.renderYawOffset = f;
+        livingEntity.rotationYaw = f;
+        livingEntity.rotationPitch = -f1 * 20.0F;
+        livingEntity.rotationYawHead = f;
+        livingEntity.prevRotationYawHead = 0;
+        EntityRendererManager entityrenderermanager = Minecraft.getInstance().getRenderManager();
+        quaternion1.conjugate();
+        entityrenderermanager.setCameraOrientation(quaternion1);
+        entityrenderermanager.setRenderShadow(false);
+        IRenderTypeBuffer.Impl irendertypebuffer$impl = Minecraft.getInstance().getRenderTypeBuffers().getBufferSource();
+        entityrenderermanager.renderEntityStatic(livingEntity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, matrixstack, irendertypebuffer$impl, 15728880);
+        irendertypebuffer$impl.finish();
+        entityrenderermanager.setRenderShadow(true);
+        livingEntity.renderYawOffset = f2;
+        livingEntity.rotationYaw = f3;
+        livingEntity.rotationPitch = f4;
+        livingEntity.prevRotationYawHead = f5;
+        livingEntity.rotationYawHead = f6;
+        RenderSystem.popMatrix();
     }
 }

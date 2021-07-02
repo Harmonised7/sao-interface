@@ -7,6 +7,7 @@ public class SaouiConfefeg
     public static Confefeger confefeger = Confefeger.registerConfefeg( Reference.MOD_ID );
     //Buttons
     public static Confefeger.Confefeg<Integer> buttonColor;
+    public static Confefeger.Confefeg<Integer> buttonFadeColor;
     public static Confefeger.Confefeg<Integer> buttonLockedColor;
     public static Confefeger.Confefeg<Integer> buttonHoverColor;
     public static Confefeger.Confefeg<Integer> buttonActiveColor;
@@ -59,6 +60,11 @@ public class SaouiConfefeg
                 .category( "gui.buttons" )
                 .side( Confefeger.Side.LOCAL )
                 .submitRGBA( 0xeeeeee );
+        buttonFadeColor = confefeger
+                .build( "buttonFadeColor" )
+                .category( "gui.buttons" )
+                .side( Confefeger.Side.LOCAL )
+                .submitRGBA( 0xbbbbbb );
         buttonLockedColor = confefeger
                 .build( "buttonLockedColor" )
                 .category( "gui.buttons" )

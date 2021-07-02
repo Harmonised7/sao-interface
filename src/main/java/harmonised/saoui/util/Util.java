@@ -5,8 +5,11 @@ import harmonised.saoui.network.NetworkHandler;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.ResourceLocation;
@@ -297,7 +300,7 @@ public class Util
         return effects;
     }
 
-    public static boolean isProduction()
+    public static boolean isReleased()
     {
         return FMLEnvironment.production;
     }
@@ -310,12 +313,49 @@ public class Util
 
     public static int multiplyAlphaColor( int alpha, int color )
     {
-        int output = (int) ( (alpha/255f) * ( ( color & 0xff000000 ) >> 24 & 0xff ) );
+        int output = (int) ( (alpha/255f) * ( ( getAlphaFromColor( color ) ) ) );
         return output;
+    }
+
+    public static int getAlphaFromColor( int color )
+    {
+        return ( color & 0xff000000 ) >> 24 & 0xff;
     }
 
     public static String intToHexString( int number )
     {
         return String.format("0x%08X", number );
+    }
+
+    public static boolean canCraft( PlayerInventory inputInv, IRecipe recipe )
+    {
+        PlayerInventory tempInv = new PlayerInventory( inputInv.player );
+        Map<Item, Integer> items = new HashMap<>();
+
+        //Sort Inventory
+        for( ItemStack itemStack : inputInv.mainInventory )
+        {
+            Item item = itemStack.getItem();
+            int count = itemStack.getCount();
+            items.put( item, items.containsKey( item ) ? items.get( item ) + count : count );
+        }
+
+        for( Map.Entry<Item, Integer> item : items.entrySet() )
+        {
+            tempInv.addItemStackToInventory( new ItemStack( item.getKey(), item.getValue() ) );
+        }
+
+        for( Object obj : recipe.getIngredients() )
+        {
+            Ingredient ingredient = (Ingredient) obj;
+            for( ItemStack itemStack : tempInv.mainInventory )
+            {
+                if( ingredient.test( itemStack ) )
+                    break;
+                return false;
+            }
+        }
+
+        return true;
     }
 }

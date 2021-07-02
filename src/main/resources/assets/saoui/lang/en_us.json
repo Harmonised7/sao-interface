@@ -49,6 +49,8 @@
   "saoui.range":"%1$s to %2$s",
   "saoui.on": "On",
   "saoui.off": "Off",
+  "saoui.healthX": "Health: %1$s/%2$s",
+  "saoui.armorX": "Armor: %1$s",
   "saoui.levelX": "Level: %1$s",
   "saoui.hungerX": "Hunger: %1$s/%2$s",
   "saoui.saturationX": "Saturation: %1$s/%2$s",

@@ -18,7 +18,7 @@ public class ListBox extends SaoButton
     public List<SaoButton> buttons = new ArrayList<>();
 
     public float x, y;
-    public int maxDisplayButtons = 7, fadeFrom = 1;
+    public int maxDisplayButtons = 11, fadeFrom = 1;
     private float buttonWidth = 16;
     public final int buttonGap = 4;
     public int scrollPosGoal = 0;
@@ -84,14 +84,15 @@ public class ListBox extends SaoButton
     {
         if( buttons.size() > 0 )
         {
-            int buttonCount = Math.min( maxDisplayButtons, buttons.size() );
-            int midButton = buttonCount/2;
-            boolean isEven = buttonCount%2 == 0;
+            int buttonCount = buttons.size();
+            int displayButtonsCount = Math.min( maxDisplayButtons, buttons.size() );
+            int midButton = displayButtonsCount/2;
+            boolean isEven = displayButtonsCount%2 == 0;
             int fadeInterval = Math.max( 25, Math.min( 200, 560/maxDisplayButtons ) );
-            if( !Util.isProduction() )
+            if( !Util.isReleased() )
                 Renderer.drawCenteredString( stack, Minecraft.getInstance().fontRenderer, new StringTextComponent( "" + name ), x + getWidthFloat()/2f, y - 10, 0xffffff );
             int fadeStep;
-            for( int i = 0; i < buttonCount; i++ )
+            for( int i = 0; i < displayButtonsCount; i++ )
             {
                 int buttonIndex = (i + scrollPosGoal )%buttonCount;
                 if( buttonIndex < 0 )
@@ -107,7 +108,7 @@ public class ListBox extends SaoButton
                 fadeStep = Math.abs( i - thisMidButton );
                 button.alpha = 255 - fadeInterval*fadeStep;
                 button.renderButton( stack, mouseX, mouseY, partialTicks );
-                if( !Util.isProduction() )
+                if( !Util.isReleased() )
                     Renderer.drawCenteredString( stack, Minecraft.getInstance().fontRenderer, new StringTextComponent( "" + buttonIndex ), button.x, button.y, 0xffffff );
             }
         }

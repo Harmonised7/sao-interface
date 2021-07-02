@@ -99,7 +99,7 @@ public class SAOScreen extends Screen
             {
                 if( i == 0 )
                     break;
-                System.out.println( "Closing box " + i );
+//                System.out.println( "Closing box " + i );
                 boxes.remove( i );
             }
         }
@@ -115,7 +115,7 @@ public class SAOScreen extends Screen
             ListBox sameLayerBox = boxes.get( layer );
             if( sameLayerBox.name.equals( box.name ) )
             {
-                System.out.println( "Closing box " + layer );
+//                System.out.println( "Closing box " + layer );
                 prevLayerBox.setActiveButton( null );
                 boxes.remove( layer );
                 return;
@@ -124,7 +124,7 @@ public class SAOScreen extends Screen
         //Close boxes if layer is too far, never close main box
         closeBoxes( button.box.getPos()+1 );
 
-        System.out.println( "Opening box " + boxes.size() );
+//        System.out.println( "Opening box " + boxes.size() );
         boxes.add( box );
 
         if( button.infoBox != null )
@@ -183,8 +183,9 @@ public class SAOScreen extends Screen
 
         if( infoBox != null )
         {
+            infoBox = getinfoBox();
             infoBox.x = (float) xOffset + middleX - pos - infoBox.getWidthFloat() - boxesGap;
-            infoBox.y = (float) yOffset + infoBox.getHeightFloat()/2f;
+            infoBox.y = (float) yOffset + middleY - infoBox.getHeightFloat()/2f;
         }
 
         lastRender = System.currentTimeMillis();
@@ -200,7 +201,7 @@ public class SAOScreen extends Screen
         }
 
         updatePositions( false );
-        if( infoBox != null && !Util.isProduction() )
+        if( infoBox != null )
             infoBox.render( stack, mouseX, mouseY, partialTicks );
         for( ListBox box : boxes )
         {
@@ -253,6 +254,8 @@ public class SAOScreen extends Screen
     @Override
     public boolean mouseClicked( double mouseX, double mouseY, int button )
     {
+        if( button != 0 )
+            return false;
         for( ListBox box : boxes )
         {
             for( SaoButton saoButton : box.buttons )
@@ -277,7 +280,14 @@ public class SAOScreen extends Screen
         {
             SAOScreen.xOffset += deltaX;
             SAOScreen.yOffset += deltaY;
-            SAOScreen.xOffset = Util.cap( SAOScreen.xOffset, -sr.getScaledWidth()/2D, sr.getScaledWidth()/2D );
+            float boxesWidth = 0;
+            for( ListBox box : boxes )
+            {
+                boxesWidth += box.getWidthFloat();
+            }
+            SAOScreen.xOffset = Util.cap( SAOScreen.xOffset, -( sr.getScaledWidth()/2f - boxesWidth/2f ), sr.getScaledWidth()/2f + boxesWidth/2f );
+
+//            SAOScreen.xOffset = 0;
             SAOScreen.yOffset = Util.cap( SAOScreen.yOffset, -sr.getScaledHeight()/2D, sr.getScaledHeight()/2D );
         }
         else
@@ -325,7 +335,12 @@ public class SAOScreen extends Screen
     {
         InfoBox infoBox = new InfoBox();
 
-
+        infoBox.addLine( new TranslationTextComponent( "saoui.healthX", DP.dpSoft( mc.player.getHealth() ), DP.dpSoft( mc.player.getMaxHealth() ) ) );
+        infoBox.addLine( new TranslationTextComponent( "saoui.armorX", DP.dpSoft( mc.player.getTotalArmorValue() ) ) );
+        infoBox.addLine( new TranslationTextComponent( "saoui.levelX", mc.player.experienceLevel ) );
+        infoBox.addLine( new TranslationTextComponent( "saoui.xpX", DP.dpSoft( mc.player.experience*100f ) ) );
+        infoBox.addLine( new TranslationTextComponent( "saoui.hungerX", mc.player.getFoodStats().getFoodLevel(), 20 ) );
+        infoBox.addLine( new TranslationTextComponent( "saoui.saturationX", mc.player.getFoodStats().getSaturationLevel(), 20 ) );
 
         return infoBox;
     }
@@ -345,10 +360,13 @@ public class SAOScreen extends Screen
             openBox( (SaoButton) theButton, getSelectItemsBox() );
         }));
 
-        box.addButton( new ListButton( box ).setIcon( Icons.SWORD ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".crafting" ) ).onPress( theButton ->
+        if( !Util.isReleased() )
         {
-            openBox( (SaoButton) theButton, getCraftingTypesBox() );
-        }));
+            box.addButton( new ListButton( box ).setIcon( Icons.SWORD ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".crafting" ) ).onPress( theButton ->
+            {
+                openBox( (SaoButton) theButton, getCraftingTypesBox() );
+            }));
+        }
 
         return box;
     }
@@ -406,7 +424,7 @@ public class SAOScreen extends Screen
             for( IRecipe recipe : recipeList.getRecipes() )
             {
 
-                if( recipeList.isCraftable( recipe ) )
+                if( recipeList.isCraftable( recipe ) && !recipe.isDynamic() )
                 {
                     box.addButton( new ListButton( box ).setItemStack( recipe.getRecipeOutput(), true ).onPress( theButton ->
                     {
@@ -560,14 +578,14 @@ public class SAOScreen extends Screen
         }
     }
 
-    private static ListBox getPmmoSkillsBox(UUID uuid )
+    private static ListBox getPmmoSkillsBox( UUID uuid )
     {
         ListBox box = new ListBox( "skills." + uuid.toString() );
 
         Map<String, Double> xpMap = XP.getOfflineXpMap( uuid );
         List<SaoButton> playerButtons = new ArrayList<>();
 
-        SaoButton totalLevelButton = new ListButton( box ).setIcon( Icons.STATS ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.getTotalXpFromMap( xpMap ) ), new TranslationTextComponent( "pmmo.totalLevel" ) ) ).onPress(theButton ->
+        SaoButton totalLevelButton = new ListButton( box ).setIcon( Icons.STATS ).setMsg( new TranslationTextComponent( "pmmo.levelDisplay", DP.dpSoft( XP.getTotalLevelFromMap( xpMap ) ), new TranslationTextComponent( "pmmo.totalLevel" ) ) ).onPress(theButton ->
         {
             openBox( (SaoButton) theButton, getPmmoHiscoreBox( "totalLevel" ) );
         });
@@ -601,7 +619,7 @@ public class SAOScreen extends Screen
     {
         ListBox box = new ListBox( "menu" );
 
-        box.addButton( new ListButton( box ).setLock( Util.isProduction() ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".settings" ) ).onPress( theButton ->
+        box.addButton( new ListButton( box ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + ".settings" ) ).onPress(theButton ->
         {
             openBox( (SaoButton) theButton, getSettingsBox() );
         }));
@@ -666,13 +684,33 @@ public class SAOScreen extends Screen
 
     private static ListBox getConfefegsBox(String boxKey, Set<Confefeger.Confefeg> confefegs )
     {
-        ListBox box = new ListBox( boxKey ).setMaxDisplayButtons( 11 );
+        ListBox box = new ListBox( boxKey );
 
+        List<SaoButton> configButtons = new ArrayList<>();
         for( Confefeger.Confefeg confefeg : confefegs )
         {
-            box.addButton( new ConfigButton( box, confefeg ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + "." + confefeg.name ) ).onPress( theButton ->
+            configButtons.add( new ConfigButton( box, confefeg ).setIcon( Icons.GEAR ).setMsg( new TranslationTextComponent( Reference.MOD_ID + "." + confefeg.name ) ).onPress( theButton ->
             {
             }));
+        }
+        configButtons.sort( Comparator.comparingInt( button ->
+        {
+            switch( ((ConfigButton) button).confefeg.valueType )
+            {
+                case BOOLEAN:
+                    return 0;
+                case RGBA:
+                    return 1;
+                case RGB:
+                    return 2;
+                case VALUE:
+                    return 3;
+            }
+            return 0;
+        }));
+        for( SaoButton button : configButtons )
+        {
+            box.addButton( button );
         }
 
         return box;
