@@ -19,8 +19,8 @@ apply plugin: 'maven-publish'
 apply plugin: "com.wynprice.cursemaven"
 
 version = '1.16.5-1.10.1'
-group = 'harmonised.saoui' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'saoui'
+group = 'harmonised.mco' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = 'mco'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8) // Mojang ships Java 8 to end users, so your mod should target Java 8.
 
@@ -188,7 +188,7 @@ dependencies {
 jar {
     manifest {
         attributes([
-            "Specification-Title": "saoui",
+            "Specification-Title": "mco",
             "Specification-Vendor": "saosareus",
             "Specification-Version": "1", // We are version 1 of ourselves
             "Implementation-Title": project.name,
