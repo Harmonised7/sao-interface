@@ -1,6 +1,7 @@
 package harmonised.mco.network;
 
 import harmonised.mco.confefeg.Confefeger;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.LogicalSide;
@@ -81,7 +82,10 @@ public class MessageConfefeg implements Message
                         else
                             LOGGER.error( "Received an invalid type Config! How!?" );
                         confefeger.saveConfefegs();
-                        Confefeger.syncConfefegToAllPlayers( confefeg );
+                        for( ServerPlayerEntity player : ctx.get().getSender().getServer().getPlayerList().getPlayers() )
+                        {
+                            Confefeger.syncConfefeg(( player, confefeg );
+                        }
                     }
                 }
                 else

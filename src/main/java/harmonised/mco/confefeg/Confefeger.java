@@ -104,8 +104,13 @@ public class Confefeger
     {
         for( Confefeger.Confefeg confefeg : getConfefegs().values() )
         {
-            NetworkHandler.sendToPlayer( new MessageConfefeg( Confefeger.confefegToNBT( confefeg ) ), player );
+            syncConfefeg( player, confefeg );
         }
+    }
+
+    public static void syncConfefeg( ServerPlayerEntity player, Confefeg confefeg )
+    {
+        NetworkHandler.sendToPlayer( new MessageConfefeg( Confefeger.confefegToNBT( confefeg ) ), player );
     }
 
     public String getConfefegsAsToml()
@@ -202,11 +207,6 @@ public class Confefeger
             confefeger.syncConfefegs( player );
         }
     }
-
-//    public static void syncConfefegToAllPlayers( Confefeg confefeg )
-//    {
-//        NetworkHandler.sendToPlayer( new MessageConfefeg( Confefeger.confefegToNBT( confefeg ) ), player );
-//    }
 
     public static void saveAllConfefegers()
     {
