@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class MessageIntArray
+public class MessageIntArray implements Message
 {
     int type;
     Set<Integer> items;

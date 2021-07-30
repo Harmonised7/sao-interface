@@ -1,6 +1,7 @@
 package harmonised.mco.events;
 
 import harmonised.mco.confefeg.Confefeger;
+import harmonised.mco.confefeg.McoConfefeg;
 import harmonised.mco.util.Reference;
 import harmonised.mco.util.Util;
 import net.minecraft.entity.LivingEntity;
@@ -36,11 +37,9 @@ public class EventHandler
     @SubscribeEvent
     public static void jumpEvent( LivingEvent.LivingJumpEvent event )
     {
-        if( event.getEntityLiving() instanceof PlayerEntity )
+        if( event.getEntityLiving() instanceof PlayerEntity && !Util.isReleased() )
         {
-            Util.multiplyAlphaColor( 100, 0x66ffffff );
-//            Configs.parseConfig( Reference.MOD_ID );
-//            ConfigProcessor.saveConfig( SaoConfig.class );
+            System.out.println(McoConfefeg.buttonColor);
         }
     }
 

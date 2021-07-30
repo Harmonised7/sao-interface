@@ -3,7 +3,10 @@ package harmonised.mco.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
 import harmonised.mco.confefeg.McoConfefeg;
+import harmonised.mco.temp.Region;
+import harmonised.mco.temp.RegionPos;
 import harmonised.mco.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -23,8 +26,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
@@ -33,6 +38,8 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
+import net.minecraft.world.border.BorderStatus;
+import net.minecraft.world.border.WorldBorder;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.gui.GuiUtils;
@@ -41,6 +48,7 @@ import java.util.*;
 
 public class Renderer
 {
+    private static final ResourceLocation FORCEFIELD_TEXTURES = new ResourceLocation("textures/misc/forcefield.png");
     public static final Map<LivingEntity, HPBar> hpBars = new HashMap<>();
     public static Map<Integer, List<EffectInstance>> effects = new HashMap<>();
     private static final Minecraft mc = Minecraft.getInstance();
@@ -83,24 +91,179 @@ public class Renderer
         RenderSystem.enableBlend();
         //Align to world
         stack.translate( -cameraCenter.getX() + 0.5, -cameraCenter.getY() + 0.5, -cameraCenter.getZ() + 0.5 );
-        stack.rotate( Vector3f.XP.rotationDegrees(180.0F));
+        stack.rotate( Vector3f.XP.rotationDegrees(180.0F) );
 
-        drawSaoUi( stack, player, partialTicks );
+        drawMcoUi( stack, player, partialTicks );
         int i = 0;
         for( LivingEntity livingEntity : world.getLoadedEntitiesWithinAABB( LivingEntity.class, new AxisAlignedBB( originBlockPos.up( renderDistance ).north( renderDistance ).east( renderDistance ), originBlockPos.down( renderDistance ).south( renderDistance ).west( renderDistance ) ) ) )
         {
             if( invisibles.contains( livingEntity.getEntityId() ) || livingEntity == player )
                 continue;
-            drawSaoUi( stack, livingEntity, partialTicks );
+            drawMcoUi( stack, livingEntity, partialTicks );
             if( i++ > 300 )
                 break;
         }
 
         stack.pop();
-//        buffer.endBatch();
     }
 
-    public static void drawSaoUi( MatrixStack stack, LivingEntity livingEntity, float partialTicks )
+    public static void renderAntiGriefRegions( RenderWorldLastEvent event )
+    {
+        MatrixStack stack = event.getMatrixStack();
+        PlayerEntity player = mc.player;
+        mc.getTextureManager().bindTexture( FORCEFIELD_TEXTURES );
+        stack.push();
+        Matrix4f matrix = stack.getLast().getMatrix();
+        BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
+        int color = 0xfffff;
+
+        mirrorBlitColor( stack, -3, 3, -3, 3, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color );
+        stack.rotate( Vector3f.YP.rotationDegrees( 90 ) );
+        mirrorBlitColor( stack, -3, 3, -3, 3, 0, indicatorWidth, indicatorHeight, 0, 0, indicatorWidth, indicatorHeight, color );
+        stack.pop();
+    }
+
+    public static void renderBorders( MatrixStack stack )
+    {
+        BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
+//        WorldBorder worldborder = mc.world.getWorldBorder();
+        Region region = new Region( mc.world.getDimensionKey().getRegistryName(), "potato", new RegionPos( -25, -5 ), new RegionPos( 5, 5 ) );
+        double d0 = (double)(mc.gameSettings.renderDistanceChunks * 16);
+        ActiveRenderInfo activeRenderInfo = mc.gameRenderer.getActiveRenderInfo();
+        Vector3d cameraCenter = activeRenderInfo.getProjectedView();
+        if (!(cameraCenter.x < region.getX2() - d0) || !(cameraCenter.x > region.getX1() + d0) || !(cameraCenter.z < region.getZ2() - d0) || !(cameraCenter.z > region.getZ1() + d0))
+        {
+            double d1 = 1.0D - getClosestDistance( region, cameraCenter.x, cameraCenter.z ) / d0;
+            d1 = Math.pow(d1, 4.0D);
+            double d2 = cameraCenter.x;
+            double d3 = cameraCenter.y;
+            double d4 = cameraCenter.z;
+            RenderSystem.enableBlend();
+            RenderSystem.enableDepthTest();
+            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+            mc.getTextureManager().bindTexture(FORCEFIELD_TEXTURES);
+            RenderSystem.depthMask(Minecraft.isFabulousGraphicsEnabled());
+            RenderSystem.pushMatrix();
+            stack.scale( 1, -1, -1 );
+            RenderSystem.multMatrix( stack.getLast().getMatrix() );
+//            int i = BorderStatus.STATIONARY.getColor();
+            int i = 0xff00ff;
+            float red = (float)(i >> 16 & 255) / 255.0F;
+            float green = (float)(i >> 8 & 255) / 255.0F;
+            float blue = (float)(i & 255) / 255.0F;
+            RenderSystem.color4f(red, green, blue, (float)d1);
+            RenderSystem.polygonOffset(-3.0F, -3.0F);
+            RenderSystem.enablePolygonOffset();
+            RenderSystem.defaultAlphaFunc();
+            RenderSystem.enableAlphaTest();
+            RenderSystem.disableCull();
+            float f3 = (float)(net.minecraft.util.Util.milliTime() % 3000L) / 3000.0F;
+            float f4 = 0.0F;
+            float f5 = 0.0F;
+            float f6 = 128.0F;
+            bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
+            double d5 = Math.max((double) MathHelper.floor(d4 - d0), region.getZ1());
+            double d6 = Math.min((double)MathHelper.ceil(d4 + d0), region.getZ2());
+            float f11;
+            double d11;
+            double d14;
+            float f14;
+            if (d2 > region.getX2() - d0)
+            {
+                f11 = 0.0F;
+
+                for(d11 = d5; d11 < d6; f11 += 0.5F)
+                {
+                    d14 = Math.min(1.0D, d6 - d11);
+                    f14 = (float)d14 * 0.5F;
+                    addVertex(bufferbuilder, d2, d3, d4, region.getX2(), 256, d11, f3 + f11, f3 + 0.0F);
+                    addVertex(bufferbuilder, d2, d3, d4, region.getX2(), 256, d11 + d14, f3 + f14 + f11, f3 + 0.0F);
+                    addVertex(bufferbuilder, d2, d3, d4, region.getX2(), 0, d11 + d14, f3 + f14 + f11, f3 + 128.0F);
+                    addVertex(bufferbuilder, d2, d3, d4, region.getX2(), 0, d11, f3 + f11, f3 + 128.0F);
+                    ++d11;
+                }
+            }
+
+            if (d2 < region.getX1() + d0)
+            {
+                f11 = 0.0F;
+
+                for(d11 = d5; d11 < d6; f11 += 0.5F)
+                {
+                    d14 = Math.min(1.0D, d6 - d11);
+                    f14 = (float)d14 * 0.5F;
+                    addVertex(bufferbuilder, d2, d3, d4, region.getX1(), 256, d11, f3 + f11, f3 + 0.0F);
+                    addVertex(bufferbuilder, d2, d3, d4, region.getX1(), 256, d11 + d14, f3 + f14 + f11, f3 + 0.0F);
+                    addVertex(bufferbuilder, d2, d3, d4, region.getX1(), 0, d11 + d14, f3 + f14 + f11, f3 + 128.0F);
+                    addVertex(bufferbuilder, d2, d3, d4, region.getX1(), 0, d11, f3 + f11, f3 + 128.0F);
+                    ++d11;
+                }
+            }
+
+            d5 = Math.max((double)MathHelper.floor(d2 - d0), region.getX1());
+            d6 = Math.min((double)MathHelper.ceil(d2 + d0), region.getX2());
+            if (d4 > region.getZ2() - d0)
+            {
+                f11 = 0.0F;
+
+                for(d11 = d5; d11 < d6; f11 += 0.5F)
+                {
+                    d14 = Math.min(1.0D, d6 - d11);
+                    f14 = (float)d14 * 0.5F;
+                    addVertex(bufferbuilder, d2, d3, d4, d11, 256, region.getZ2(), f3 + f11, f3 + 0.0F);
+                    addVertex(bufferbuilder, d2, d3, d4, d11 + d14, 256, region.getZ2(), f3 + f14 + f11, f3 + 0.0F);
+                    addVertex(bufferbuilder, d2, d3, d4, d11 + d14, 0, region.getZ2(), f3 + f14 + f11, f3 + 128.0F);
+                    addVertex(bufferbuilder, d2, d3, d4, d11, 0, region.getZ2(), f3 + f11, f3 + 128.0F);
+                    ++d11;
+                }
+            }
+
+            if (d4 < region.getZ1() + d0)
+            {
+                f11 = 0.0F;
+
+                for(d11 = d5; d11 < d6; f11 += 0.5F)
+                {
+                    d14 = Math.min(1.0D, d6 - d11);
+                    f14 = (float)d14 * 0.5F;
+                    addVertex(bufferbuilder, d2, d3, d4, d11, 256, region.getZ1(), f3 + f11, f3 + 0.0F);
+                    addVertex(bufferbuilder, d2, d3, d4, d11 + d14, 256, region.getZ1(), f3 + f14 + f11, f3 + 0.0F);
+                    addVertex(bufferbuilder, d2, d3, d4, d11 + d14, 0, region.getZ1(), f3 + f14 + f11, f3 + 128.0F);
+                    addVertex(bufferbuilder, d2, d3, d4, d11, 0, region.getZ1(), f3 + f11, f3 + 128.0F);
+                    ++d11;
+                }
+            }
+
+            bufferbuilder.finishDrawing();
+            WorldVertexBufferUploader.draw(bufferbuilder);
+            RenderSystem.enableCull();
+            RenderSystem.disableAlphaTest();
+            RenderSystem.polygonOffset(0.0F, 0.0F);
+            RenderSystem.disablePolygonOffset();
+            RenderSystem.enableAlphaTest();
+            RenderSystem.disableBlend();
+            RenderSystem.popMatrix();
+            RenderSystem.depthMask(true);
+        }
+    }
+
+    public static void addVertex( BufferBuilder bufferIn, double camX, double camY, double camZ, double xIn, int yIn, double zIn, float texU, float texV )
+    {
+        bufferIn.pos(xIn - camX, (double)yIn - camY, zIn - camZ).tex(texU, texV).endVertex();
+    }
+
+    public static double getClosestDistance( Region region, double x, double z )
+    {
+        double d0 = z - region.getZ1();
+        double d1 = region.getZ2() - z;
+        double d2 = x - region.getX1();
+        double d3 = region.getX2() - x;
+        double d4 = Math.min(d2, d3);
+        d4 = Math.min(d4, d0);
+        return Math.min(d4, d1);
+    }
+
+    public static void drawMcoUi( MatrixStack stack, LivingEntity livingEntity, float partialTicks )
     {
         stack.push();
         Vector3d livingEntityEyePos = livingEntity.getEyePosition( partialTicks );
@@ -522,7 +685,7 @@ public class Renderer
 
     public static void mirrorBlitColor( MatrixStack matrixStack, float x1, float x2, float y1, float y2, float blitOffset, float uWidth, float vHeight, float uOffset, float vOffset, float textureWidth, float textureHeight, int color )
     {
-        mirrorBlitColor(matrixStack.getLast().getMatrix(), x1, x2, y1, y2, blitOffset, (uOffset + 0.0F) / textureWidth, (uOffset + uWidth) / textureWidth, (vOffset + 0.0F) / textureHeight, (vOffset + vHeight) / textureHeight, color );
+        mirrorBlitColor( matrixStack.getLast().getMatrix(), x1, x2, y1, y2, blitOffset, (uOffset + 0.0F) / textureWidth, (uOffset + uWidth) / textureWidth, (vOffset + 0.0F) / textureHeight, (vOffset + vHeight) / textureHeight, color );
     }
 
     public static void mirrorBlitColor( Matrix4f matrix, float x1, float x2, float y1, float y2, float blitOffset, float minU, float maxU, float minV, float maxV, int color )

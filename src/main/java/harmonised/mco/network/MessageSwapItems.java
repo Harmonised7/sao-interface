@@ -6,7 +6,7 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class MessageSwapItems
+public class MessageSwapItems implements Message
 {
     public int a, b;
 

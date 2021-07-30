@@ -21,28 +21,13 @@ public class NetworkHandler
         MCOMod.HANDLER.registerMessage( index++, MessageNBT.class, MessageNBT::encode, MessageNBT::decode, MessageNBT::handlePacket );
     }
 
-    public static void sendToPlayer( MessageIntArray packet, ServerPlayerEntity player )
+    public static void sendToPlayer( Message packet, ServerPlayerEntity player )
     {
         MCOMod.HANDLER.sendTo( packet, player.connection.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT );
     }
 
-    public static void sendToPlayer( MessageNBT packet, ServerPlayerEntity player )
-    {
-        MCOMod.HANDLER.sendTo( packet, player.connection.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT );
-    }
-
-    public static void sendToServer( MessageSwapItems packet )
+    public static void sendToServer( Message packet )
     {
         MCOMod.HANDLER.sendToServer( packet );
-    }
-
-    public static void sendToServer( MessageCraft packet )
-    {
-        MCOMod.HANDLER.sendToServer( packet );
-    }
-
-    public static void sendToPlayer( MessageConfefeg packet, ServerPlayerEntity player )
-    {
-        MCOMod.HANDLER.sendTo( packet, player.connection.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT );
     }
 }

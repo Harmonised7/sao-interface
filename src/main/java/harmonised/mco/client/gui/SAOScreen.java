@@ -132,7 +132,6 @@ public class SAOScreen extends Screen
             infoBox = button.infoBox;
             infoBoxParent = box;
         }
-
         button.setAsActive();
     }
 

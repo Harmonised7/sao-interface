@@ -203,6 +203,11 @@ public class Confefeger
         }
     }
 
+//    public static void syncConfefegToAllPlayers( Confefeg confefeg )
+//    {
+//        NetworkHandler.sendToPlayer( new MessageConfefeg( Confefeger.confefegToNBT( confefeg ) ), player );
+//    }
+
     public static void saveAllConfefegers()
     {
         for( Confefeger confefeger : confefegers.values() )
@@ -340,7 +345,6 @@ public class Confefeger
 
         public Confefeg<Integer> submitRGBA( int value )
         {
-            System.out.println( value <= 0xffffff ? value | (0xff << 24) : value );
             return Confefeg.fromRange( confefeger, name, description, category, side, value <= 0xffffff ? value | (0xff << 24) : value, Integer.MIN_VALUE, Integer.MAX_VALUE, ValueType.RGBA );
         }
 
@@ -427,15 +431,20 @@ public class Confefeger
         {
             return defaultValue;
         }
-        
-        public void set( T value )
+
+        public void setLocal( T value )
         {
             this.value = value;
             this.localValue = value;
-//            if( this.side == Side.COMMON )
-//            {
-                //Send packet to set confefeg from to either side?
-//            }
+        }
+
+        public void set( T value )
+        {
+            setLocal( value );
+            if( this.side == Side.COMMON )
+            {
+                NetworkHandler.sendToServer( new MessageConfefeg( Confefeger.confefegToNBT( this ) ) );
+            }
         }
 
         public static void setSmart( Confefeg confefeg, double value )

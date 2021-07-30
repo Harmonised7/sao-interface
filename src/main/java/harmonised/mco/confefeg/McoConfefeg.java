@@ -1,6 +1,7 @@
 package harmonised.mco.confefeg;
 
 import harmonised.mco.util.Reference;
+import harmonised.mco.util.Util;
 
 public class McoConfefeg
 {

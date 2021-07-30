@@ -7,7 +7,7 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class MessageCraft
+public class MessageCraft implements Message
 {
     public ResourceLocation recipe;
     public int amount;

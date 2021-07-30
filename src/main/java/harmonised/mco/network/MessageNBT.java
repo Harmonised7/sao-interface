@@ -8,7 +8,7 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class MessageNBT
+public class MessageNBT implements Message
 {
     int type;
     CompoundNBT nbt;
