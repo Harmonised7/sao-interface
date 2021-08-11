@@ -84,7 +84,7 @@ public class MessageConfefeg implements Message
                         confefeger.saveConfefegs();
                         for( ServerPlayerEntity player : ctx.get().getSender().getServer().getPlayerList().getPlayers() )
                         {
-                            Confefeger.syncConfefeg(( player, confefeg );
+                            Confefeger.syncConfefeg( player, confefeg );
                         }
                     }
                 }
