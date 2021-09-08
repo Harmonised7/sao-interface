@@ -1,5 +1,6 @@
 package harmonised.mco.events;
 
+import harmonised.mco.client.gui.Temp;
 import harmonised.mco.confefeg.Confefeger;
 import harmonised.mco.confefeg.McoConfefeg;
 import harmonised.mco.util.Reference;
@@ -8,6 +9,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -65,5 +67,11 @@ public class EventHandler
     public static void playerLoggedIn( PlayerEvent.PlayerLoggedInEvent event )
     {
         Confefeger.syncAllConfefegs( (ServerPlayerEntity) event.getPlayer() );
+    }
+
+    @SubscribeEvent
+    public static void textRender( RenderGameOverlayEvent.Text event )
+    {
+        Temp.test( event );
     }
 }
