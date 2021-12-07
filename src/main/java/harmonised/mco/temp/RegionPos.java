@@ -4,7 +4,7 @@ public class RegionPos
 {
     private int x, z;
 
-    public RegionPos(int x, int z )
+    public RegionPos(int x, int z)
     {
         this.x = x;
         this.z = z;
@@ -15,7 +15,7 @@ public class RegionPos
         return x;
     }
 
-    public void setX( int x )
+    public void setX(int x)
     {
         this.x = x;
     }
@@ -25,7 +25,7 @@ public class RegionPos
         return z;
     }
 
-    public void setZ( int z )
+    public void setZ(int z)
     {
         this.z = z;
     }

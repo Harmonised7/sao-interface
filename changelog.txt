@@ -1206,7 +1206,7 @@ Build: 1.16.3-34.0.7 - Tue Sep 15 20:07:25 GMT 2020
 =========
 Build: 1.16.3-34.0.6 - Tue Sep 15 19:47:08 GMT 2020
 	cyborgmas:
-		Add MatrixStack-aware alternatives to the methods in GuiUtils (#7127)
+		Add PoseStack-aware alternatives to the methods in GuiUtils (#7127)
 
 =========
 Build: 1.16.3-34.0.5 - Tue Sep 15 16:51:58 GMT 2020
@@ -1806,7 +1806,7 @@ Build: 1.16.1-32.0.64 - Mon Jul 13 22:17:58 GMT 2020
 	lexmanos:
 		Fix checkPatches task. Closes #6956
 		Fix patched in method using srg name. Closes #6965
-		Fix capabilities not being collected for ClientWorld. Closes #6966
+		Fix capabilities not being collected for ClientLevel. Closes #6966
 		Fix TagEmptyCondition using client side copy of tags instead of server. Closes #6949
 		Fix ExtendedButton using narrator text. Closes #6958, Closes #6959
 		Fix misaligned patch in RepairContainer. Closes #6950, Closes #6953
@@ -1933,7 +1933,7 @@ Build: 1.16.1-32.0.43 - Thu Jul 02 12:54:03 GMT 2020
 		The model data wasn't included when getting quads from specific sides, but was when getting quads for side = null.
 
 	cyborgmas:
-		Pass matrixstack in tooltip render events (#6885)
+		Pass PoseStack in tooltip render events (#6885)
 
 =========
 Build: 1.16.1-32.0.41 - Thu Jul 02 05:54:25 GMT 2020

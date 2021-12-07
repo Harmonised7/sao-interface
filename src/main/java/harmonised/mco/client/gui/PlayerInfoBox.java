@@ -1,6 +1,6 @@
 package harmonised.mco.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 
 public class PlayerInfoBox extends InfoBox
@@ -12,9 +12,9 @@ public class PlayerInfoBox extends InfoBox
     }
 
     @Override
-    public void render( MatrixStack stack, int mouseX, int mouseY, float partialTicks )
+    public void render(PoseStack stack, int mouseX, int mouseY, float partialTicks)
     {
-        renderBg( stack, Minecraft.getInstance(), mouseX, mouseY );
-//        Renderer.drawEntityOnScreen( stack, x, y, 1, mouseX, mouseY, Minecraft.getInstance().player );
+        renderBg(stack, Minecraft.getInstance(), mouseX, mouseY);
+//        Renderer.drawEntityOnScreen(stack, x, y, 1, mouseX, mouseY, Minecraft.getInstance().player);
     }
 }

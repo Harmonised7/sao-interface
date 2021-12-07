@@ -1,12 +1,12 @@
 package harmonised.mco.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import harmonised.mco.util.Reference;
 import harmonised.mco.util.Util;
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.TranslatableComponent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,15 +37,15 @@ public class ListBox extends SaoButton
     //Button Arrow
     private static final int buttonArrowSize = 128;
 
-    public ListBox(String name )
+    public ListBox(String name)
     {
 //        this.width = Renderer.getScaledWidth();
 //        this.height = Renderer.getScaledHeight();
         this.name = name;
         midX = Renderer.getScaledWidth()/2;
         midY = Renderer.getScaledHeight()/2;
-        emptyButton = new ListButton( this );
-        emptyButton.setMsg( new TranslationTextComponent( Reference.MOD_ID + ".empty" ) );
+        emptyButton = new ListButton(this);
+        emptyButton.setMsg(new TranslatableComponent(Reference.MOD_ID + ".empty"));
     }
 
     @Override
@@ -57,13 +57,13 @@ public class ListBox extends SaoButton
     @Override
     public float getHeightFloat()
     {
-        int buttonCount = Math.min( maxDisplayButtons, buttons.size() );
+        int buttonCount = Math.min(maxDisplayButtons, buttons.size());
         float height = 0;
-        for( int i = 0; i < buttonCount; i++ )
+        for(int i = 0; i < buttonCount; i++)
         {
-            height += buttons.get( i ).getHeightFloat();
+            height += buttons.get(i).getHeightFloat();
         }
-        height += ( Math.max( 0, buttonCount-1 ) )*buttonGap;
+        height += (Math.max(0, buttonCount-1))*buttonGap;
         return height;
     }
 
@@ -80,65 +80,65 @@ public class ListBox extends SaoButton
     }
 
     @Override
-    public void render( MatrixStack stack, int mouseX, int mouseY, float partialTicks )
+    public void render(PoseStack stack, int mouseX, int mouseY, float partialTicks)
     {
-        if( buttons.size() > 0 )
+        if(buttons.size() > 0)
         {
             int buttonCount = buttons.size();
-            int displayButtonsCount = Math.min( maxDisplayButtons, buttons.size() );
+            int displayButtonsCount = Math.min(maxDisplayButtons, buttons.size());
             int midButton = displayButtonsCount/2;
             boolean isEven = displayButtonsCount%2 == 0;
-            int fadeInterval = Math.max( 25, Math.min( 200, 560/maxDisplayButtons ) );
-            if( !Util.isReleased() )
-                Renderer.drawCenteredString( stack, Minecraft.getInstance().fontRenderer, new StringTextComponent( "" + name ), x + getWidthFloat()/2f, y - 10, 0xffffff );
+            int fadeInterval = Math.max(25, Math.min(200, 560/maxDisplayButtons));
+            if(!Util.isReleased())
+                Renderer.drawCenteredString(stack, Minecraft.getInstance().fontRenderer, new StringTextComponent("" + name), x + getWidthFloat()/2f, y - 10, 0xffffff);
             int fadeStep;
-            for( int i = 0; i < displayButtonsCount; i++ )
+            for(int i = 0; i < displayButtonsCount; i++)
             {
-                int buttonIndex = (i + scrollPosGoal )%buttonCount;
-                if( buttonIndex < 0 )
+                int buttonIndex = (i + scrollPosGoal)%buttonCount;
+                if(buttonIndex < 0)
                     buttonIndex += buttonCount;
-                SaoButton button = buttons.get( buttonIndex );
-                if( i >= maxDisplayButtons )
+                SaoButton button = buttons.get(buttonIndex);
+                if(i >= maxDisplayButtons)
                     break;
                 button.x = x;
                 button.y = y + (button.getHeightFloat()+buttonGap)*i;
                 int thisMidButton = midButton;
-                if( isEven && i < midButton )
+                if(isEven && i < midButton)
                     thisMidButton--;
-                fadeStep = Math.abs( i - thisMidButton );
+                fadeStep = Math.abs(i - thisMidButton);
                 button.alpha = 255 - fadeInterval*fadeStep;
-                button.renderButton( stack, mouseX, mouseY, partialTicks );
-                if( !Util.isReleased() )
-                    Renderer.drawCenteredString( stack, Minecraft.getInstance().fontRenderer, new StringTextComponent( "" + buttonIndex ), button.x, button.y, 0xffffff );
+                button.renderButton(stack, mouseX, mouseY, partialTicks);
+                if(!Util.isReleased())
+                    Renderer.drawCenteredString(stack, Minecraft.getInstance().fontRenderer, new StringTextComponent("" + buttonIndex), button.x, button.y, 0xffffff);
             }
         }
         else
         {
             emptyButton.x = x;
             emptyButton.y = y - emptyButton.getHeightFloat()/2f;
-            emptyButton.renderButton( stack, mouseX, mouseY, partialTicks );
+            emptyButton.renderButton(stack, mouseX, mouseY, partialTicks);
         }
         lastRender = System.currentTimeMillis();
     }
 
     @Override
-    public boolean mouseClicked( double mouseX, double mouseY, int key )
+    public boolean mouseClicked(double mouseX, double mouseY, int key)
     {
-        for( SaoButton saoButton : buttons )
+        for(SaoButton saoButton : buttons)
         {
-            if( saoButton.mouseClicked( mouseX, mouseY, key ) )
+            if(saoButton.mouseClicked(mouseX, mouseY, key))
                 return true;
         }
-        return super.mouseClicked(mouseX, mouseY, key );
+        return super.mouseClicked(mouseX, mouseY, key);
     }
 
     @Override
-    public void mouseMoved(double mouseX, double mouseY )
+    public void mouseMoved(double mouseX, double mouseY)
     {
-        super.mouseMoved( mouseX, mouseY );
-        for( SaoButton saoButton : buttons )
+        super.mouseMoved(mouseX, mouseY);
+        for(SaoButton saoButton : buttons)
         {
-            saoButton.mouseMoved( mouseX, mouseY );
+            saoButton.mouseMoved(mouseX, mouseY);
         }
     }
 
@@ -157,15 +157,15 @@ public class ListBox extends SaoButton
 
     public int getPos()
     {
-        return SAOScreen.getBoxPos( this );
+        return SAOScreen.getBoxPos(this);
     }
 
     @Override
-    public boolean mouseScrolled( double mouseX, double mouseY, double amount )
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount)
     {
-        if( !scrollLocked && mouseX > x && mouseX < x+getWidthFloat() && mouseY > y && mouseY < y+ getHeightFloat() )
+        if(!scrollLocked && mouseX > x && mouseX < x+getWidthFloat() && mouseY > y && mouseY < y+ getHeightFloat())
         {
-            if( amount > 0 )
+            if(amount > 0)
                 scrollPosGoal--;
             else
                 scrollPosGoal++;
@@ -175,20 +175,20 @@ public class ListBox extends SaoButton
         return false;
     }
 
-    public void addButton( SaoButton button )
+    public void addButton(SaoButton button)
     {
-        this.buttons.add( button );
-        if( button.getWidthFloat() > buttonWidth )
+        this.buttons.add(button);
+        if(button.getWidthFloat() > buttonWidth)
         {
             float newButtonWidth = button.getWidthFloat();
             buttonWidth = newButtonWidth;
-            for( SaoButton saoButton : buttons )
+            for(SaoButton saoButton : buttons)
             {
-                saoButton.setWidthFloat( newButtonWidth );
+                saoButton.setWidthFloat(newButtonWidth);
             }
         }
         else
-            button.setWidthFloat( buttonWidth );
+            button.setWidthFloat(buttonWidth);
     }
 
     public void clearButtons()
@@ -196,7 +196,7 @@ public class ListBox extends SaoButton
         buttons.clear();
     }
 
-    public void setActiveButton( SaoButton button )
+    public void setActiveButton(SaoButton button)
     {
         activeButton = button;
     }
@@ -213,9 +213,9 @@ public class ListBox extends SaoButton
         return this;
     }
 
-    public ListBox setMaxDisplayButtons(int value )
+    public ListBox setMaxDisplayButtons(int value)
     {
-        this.maxDisplayButtons = Math.max( 1, value );
+        this.maxDisplayButtons = Math.max(1, value);
         return this;
     }
 }
